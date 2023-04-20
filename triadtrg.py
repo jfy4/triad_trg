@@ -483,7 +483,7 @@ class Four_Dimensional_Triad_Network:
         self.F = np.dot(cap, Big).reshape((cs[0], vs[2], us[2]))
         
 
-    def update_triads(self,):
+    def update_triads(self, different_updates=True):
         # U part
         q = self.getq(self.A, self.B, self.C,
                       self.D, self.E, self.F)
@@ -492,23 +492,25 @@ class Four_Dimensional_Triad_Network:
             # U = np.eye(U.shape[0])
         else:
             U = getU(q, self.dbond)
-        # V part
-        q = self.getq(self.A.transpose((1,0,2)), self.B, self.C,
-                      self.D, self.E, self.F.transpose((0,2,1)))
-        if (self.A.shape[1]**2 < self.dbond):
-            V = getU(q, self.A.shape[1]**2)
-            # V = np.eye(V.shape[0])
+        if different_updates:
+            # V part
+            q = self.getq(self.A.transpose((1,0,2)), self.B, self.C,
+                          self.D, self.E, self.F.transpose((0,2,1)))
+            if (self.A.shape[1]**2 < self.dbond):
+                V = getU(q, self.A.shape[1]**2)
+                # V = np.eye(V.shape[0])
+            else:
+                V = getU(q, self.dbond)
+            # W part
+            q = self.getwq(self.A, self.B, self.C,
+                           self.D, self.E, self.F)
+            if (self.B.shape[0]**2 < self.dbond):
+                W = getU(q, self.B.shape[0]**2)
+                # W = np.eye(W.shape[0])
+            else:
+                W = getU(q, self.dbond)
         else:
-            V = getU(q, self.dbond)
-        # W part
-        q = self.getwq(self.A, self.B, self.C,
-                       self.D, self.E, self.F)
-        if (self.B.shape[0]**2 < self.dbond):
-            W = getU(q, self.B.shape[0]**2)
-            # W = np.eye(W.shape[0])
-        else:
-            W = getU(q, self.dbond)
-
+            W = V = U
         mid = self.updateA(U, V)
         mid = self.updateBC(W, mid)
         mid = self.updateDE(mid)
