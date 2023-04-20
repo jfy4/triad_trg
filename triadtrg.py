@@ -245,11 +245,12 @@ class Four_Dimensional_Triad_Network:
 
         self.F = self.F.reshape((alpha, ts[6], ts[7]))
 
-    def gets1(self, A, B, C):
+    def getq(self,A,B,C,D,E,F):
         As = A.shape       # get everyone's shapes
         bs = B.shape
         cs = C.shape
-
+        ds = D.shape
+        
         # s1 = np.einsum('iak, jal', A, A.conjugate()).reshape((As[0]**2, As[2]**2))
         s1 = np.tensordot(A, A.conjugate(), axes=([1], [1])).transpose((0,2,1,3))
         s1 = s1.reshape((As[0]**2, As[2]**2))
@@ -258,13 +259,32 @@ class Four_Dimensional_Triad_Network:
         s2 = np.tensordot(B, B.conjugate(), axes=([1], [1])).transpose((0,2,1,3))
         s2 = s2.reshape((bs[0]**2, bs[2]**2))
         # print(np.allclose(s2, a2))
-        s1 = np.dot(s1, s2)
+        AB = np.dot(s1, s2)
         # s2 = np.einsum('iak, jal', C, C.conjugate()).reshape((cs[0]**2, cs[2]**2))
         s2 = np.tensordot(C, C.conjugate(), axes=([1], [1])).transpose((0,2,1,3))
         s2 = s2.reshape((cs[0]**2, cs[2]**2))
         # print(np.allclose(s2, a2))
-        S1 = np.dot(s1, s2)     # A B C
-        return S1
+        ABC = np.dot(AB, s2)     # A B C
+        r1 = np.tensordot(F, F.conjugate(), axes=([1,2], [1,2]))
+        r2 = np.tensordot(E, r1, axes=([2], [0]))
+        # r2 = np.einsum('ika, jla', r2, E.conjugate())
+        r2 = np.tensordot(r2, E.conjugate(), axes=([1,2], [1,2]))
+        r2 = np.tensordot(D, r2, axes=([2], [0]))
+        r2 = np.tensordot(r2, D.conjugate(), axes=([2],[2])).transpose((0,2,1,3))
+        r3 = np.einsum('ijaa', r2)
+        DD = r2.reshape((ds[0]**2, ds[1]**2))
+        r4 = np.tensordot(C, r3, axes=([2],[0]))
+        r4 = np.tensordot(r4, C.conjugate(), axes=([2],[2])).transpose((0,2,1,3))
+        CC = r4.reshape((cs[0]**2, cs[1]**2))
+        Q = AB.dot(CC)
+        Q = Q.dot(DD.transpose())
+        Q = Q.dot(ABC.transpose()).reshape((As[0], As[0], As[0], As[0]))
+        Q = Q.transpose((0,2,1,3)).reshape((As[0]**2, As[0]**2))
+        assert np.allclose(Q, Q.conjugate().transpose())
+        return Q
+
+        
+        # return S1
 
     def gets2(self, D):
         ds = D.shape
@@ -295,23 +315,23 @@ class Four_Dimensional_Triad_Network:
         return (r2, r3)
 
             
-    def getq(self, A, B, C, D, E, F):
-        """make the q matrix."""
-        S1 = self.gets1(A, B, C)
-        ss = S1.shape
-        xx = int(np.rint(np.sqrt(ss[0])))
-        S2 = self.gets2(D)
-        R2, R3 = self.getr23(D, E, F)
+    # def getq(self, A, B, C, D, E, F):
+    #     """make the q matrix."""
+    #     S1 = self.gets1(A, B, C)
+    #     ss = S1.shape
+    #     xx = int(np.rint(np.sqrt(ss[0])))
+    #     S2 = self.gets2(D)
+    #     R2, R3 = self.getr23(D, E, F)
 
-        Q = np.dot(S1, S2)
-        Q = np.dot(Q, R2)
-        Q = np.dot(Q, R3.transpose())
-        Q = np.dot(Q, S1.transpose())
-        Q = Q.reshape((xx,xx,xx,xx)).transpose((0,2,1,3))
-        Q = Q.reshape((xx**2, xx**2))
-        # assert np.allclose(Q, Q.conjugate().transpose())
+    #     Q = np.dot(S1, S2)
+    #     Q = np.dot(Q, R2)
+    #     Q = np.dot(Q, R3.transpose())
+    #     Q = np.dot(Q, S1.transpose())
+    #     Q = Q.reshape((xx,xx,xx,xx)).transpose((0,2,1,3))
+    #     Q = Q.reshape((xx**2, xx**2))
+    #     # assert np.allclose(Q, Q.conjugate().transpose())
 
-        return Q
+    #     return Q
 
     def getws1(self, A, B, C):
         As = A.shape       # get everyone's shapes
