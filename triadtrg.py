@@ -490,12 +490,14 @@ class Four_Dimensional_Triad_Network:
         return mid
 
 
-    def updateDEF(self, U, V, W):
+    def updateEF(self, U, V, W):
         us = U.shape
         us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
         vs = V.shape
         vs = (int(np.rint(np.sqrt(vs[0]))), int(np.rint(np.sqrt(vs[0]))), vs[1])
-        cs = cap.shape
+        ws = W.shape
+        ws = (int(np.rint(np.sqrt(ws[0]))), int(np.rint(np.sqrt(ws[0]))), ws[1])
+        # cs = cap.shape
         fs = self.F.shape
         ds = self.D.shape
         cs = self.C.shape
@@ -511,24 +513,27 @@ class Four_Dimensional_Triad_Network:
         # Big = Big.reshape((fs[0]**2, vs[2]*us[2]))
         # self.F = np.dot(cap, Big).reshape((cs[0], vs[2], us[2]))
         Big = np.tensordot(self.D, Big, axes=([2],[0])).transpose((0,2,1,3,4,5))
-        Big = np.tensordor(self.make_mid(), Big, axes=([2,3],[0,1])) # D^8
-        Big = Big.transpose((0,1,3,4,5,2)).reshape((cs[0]*ds[0]*es[1]*fs[1], fs[2]*ds[1]))
+        Big = np.tensordot(self.make_mid(), Big, axes=([2,3],[0,1])) # D^8
+        Big = Big.transpose((0,1,3,4,5,2)).reshape((cs[0]*ds[0]*ws[2]*vs[2], us[2]*ds[1]))
         Big, self.F, alpha = split(Big, cut=self.dbond) # D^8
-        self.F = self.F.reshape((alpha, fs[2], ds[1]))
-        Big = Big.reshape((cs[0]*ds[0]*es[1], fs[1]*alpha))
+        self.F = self.F.reshape((alpha, us[2], ds[1]))
+        Big = Big.reshape((cs[0]*ds[0]*ws[2], vs[2]*alpha))
         Big, self.E, beta = split(Big, cut=self.dbond)
-        self.E = self.E.reshape((beta, fs[1], alpha))
-        Big = Big.reshape((cs[0]*ds[0], es[1]*beta))
-        Big, self.D, gamma = split(Big, cut=self.dbond)
-        self.D = self.D.reshape((gamma, es[1], beta))
-        return Big.reshape((cs[0], ds[0], gamma))
+        self.E = self.E.reshape((beta, vs[2], alpha))
+        Big = Big.reshape((cs[0], ds[0], ws[2], beta))
+        return Big
+        # Big, self.D, gamma = split(Big, cut=self.dbond)
+        # self.D = self.D.reshape((gamma, ws[2], beta))
+        # return Big.reshape((cs[0], ds[0], gamma))
 
-    def updateABC(self, cap, U, V, W):
+    def updateABCD(self, cap, U, V, W):
         us = U.shape
         us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
         vs = V.shape
         vs = (int(np.rint(np.sqrt(vs[0]))), int(np.rint(np.sqrt(vs[0]))), vs[1])
         cs = cap.shape
+        ws = W.shape
+        ws = (int(np.rint(np.sqrt(ws[0]))), int(np.rint(np.sqrt(ws[0]))), ws[1])
         As = self.A.shape
         bs = self.B.shape
         cs = self.C.shape
@@ -542,14 +547,17 @@ class Four_Dimensional_Triad_Network:
         Big = np.tensordot(two, one, axes=([0, 2], [2, 0])).transpose((0, 2, 1, 3))
         Big = np.tensordot(Big, self.updateB(W), axes=([2,3],[0,1]))
         Big = np.tensordot(Big, self.C, axes=([4],[0])).transpose((0,1,2,4,3,5))
-        Big = np.tensordot(Big, cap, axes=([4,5],[0,1])).transpose((3,0,1,2,4))
-        Big = Big.reshape((cs[1]*As[0], As[1]*bs[1]*ms[2]))
+        Big = np.tensordot(Big, cap, axes=([4,5],[0,1])).transpose((3,0,1,2,4,5)) # D^8
+        Big = Big.reshape((cs[1]*us[2], vs[2]*ws[2]*ms[2]*ms[3]))
         self.A, Big, alpha = split(Big, cut=self.dbond)
-        self.A = self.A.reshape((cs[1], As[0], alpha))
-        Big = Big.reshape((alpha*As[1], bs[1]*ms[2]))
-        self.B, self.C, beta = split(Big, cut=self.dbond)
-        self.B = self.B.reshape((alpha, As[1], beta))
-        self.C = self.C.reshape((beta, bs[1], ms[2]))
+        self.A = self.A.reshape((cs[1], us[2], alpha))
+        Big = Big.reshape((alpha*vs[2], ws[2]*ms[2]*ms[3]))
+        self.B, Big, beta = split(Big, cut=self.dbond)
+        self.B = self.B.reshape((alpha, vs[2], beta))
+        Big = Big.reshape((beta*ws[2], ms[2]*ms[3]))
+        self.C, self.D, gamma = split(Big, cut=self.dbond)
+        self.C = self.C.reshape((beta, ws[2], gamma))
+        self.D = self.D.reshape((gamma, ms[2], ms[3]))
         
         
 
@@ -582,8 +590,9 @@ class Four_Dimensional_Triad_Network:
                 W = getU(q, self.dbond)
         else:
             W = V = U
-        mid = self.updateDEF(U, V, W)
-        self.updateABC(mid, U, V, W)
+        mid = self.updateEF(U, V, W)
+        self.updateABCD(mid, U, V, W)
+        print(self.A.shape, self.B.shape, self.C.shape, self.D.shape, self.E.shape, self.F.shape)
         # mid = self.updateA(U, V)
         # mid = self.updateBC(W, mid)
         # mid = self.updateDE(mid)
