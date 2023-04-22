@@ -286,33 +286,33 @@ class Four_Dimensional_Triad_Network:
         
         # return S1
 
-    def gets2(self, D):
-        ds = D.shape
-        # DD = np.einsum('iak, jal', D, D.conjugate()).reshape((ds[0]**2, ds[2]**2))
-        DD = np.tensordot(D, D.conjugate(), axes=([1], [1])).transpose((0,2,1,3))
-        DD = DD.reshape((ds[0]**2, ds[2]**2))
-        return DD
+    # def gets2(self, D):
+    #     ds = D.shape
+    #     # DD = np.einsum('iak, jal', D, D.conjugate()).reshape((ds[0]**2, ds[2]**2))
+    #     DD = np.tensordot(D, D.conjugate(), axes=([1], [1])).transpose((0,2,1,3))
+    #     DD = DD.reshape((ds[0]**2, ds[2]**2))
+    #     return DD
 
-    def getr23(self, D, E, F):
-        ds = D.shape
-        es = E.shape
-        fs = F.shape
+    # def getr23(self, D, E, F):
+    #     ds = D.shape
+    #     es = E.shape
+    #     fs = F.shape
 
-        # r1 = np.einsum('iab, jab', F, F.conjugate())
-        r1 = np.tensordot(F, F.conjugate(), axes=([1,2], [1,2]))
-        # r2 = np.einsum('ija, ak', E, r1)
-        r2 = np.tensordot(E, r1, axes=([2], [0]))
-        # r2 = np.einsum('ika, jla', r2, E.conjugate())
-        r2 = np.tensordot(r2, E.conjugate(), axes=([2], [2])).transpose((0,2,1,3))
+    #     # r1 = np.einsum('iab, jab', F, F.conjugate())
+    #     r1 = np.tensordot(F, F.conjugate(), axes=([1,2], [1,2]))
+    #     # r2 = np.einsum('ija, ak', E, r1)
+    #     r2 = np.tensordot(E, r1, axes=([2], [0]))
+    #     # r2 = np.einsum('ika, jla', r2, E.conjugate())
+    #     r2 = np.tensordot(r2, E.conjugate(), axes=([2], [2])).transpose((0,2,1,3))
 
-        mid = np.einsum('ijaa', r2)
-        # left = np.einsum('ija, ak', D, mid)
-        left = np.tensordot(D, mid, axes=([2], [0]))
-        # r3 = np.einsum('ika, jla', left, D.conjugate()).reshape((ds[0]**2, ds[1]**2))
-        r3 = np.tensordot(left, D.conjugate(), axes=([2], [2])).transpose((0,2,1,3))
-        r3 = r3.reshape((ds[0]**2, ds[1]**2))
-        r2 = r2.reshape((es[0]**2, es[1]**2))
-        return (r2, r3)
+    #     mid = np.einsum('ijaa', r2)
+    #     # left = np.einsum('ija, ak', D, mid)
+    #     left = np.tensordot(D, mid, axes=([2], [0]))
+    #     # r3 = np.einsum('ika, jla', left, D.conjugate()).reshape((ds[0]**2, ds[1]**2))
+    #     r3 = np.tensordot(left, D.conjugate(), axes=([2], [2])).transpose((0,2,1,3))
+    #     r3 = r3.reshape((ds[0]**2, ds[1]**2))
+    #     r2 = r2.reshape((es[0]**2, es[1]**2))
+    #     return (r2, r3)
 
             
     # def getq(self, A, B, C, D, E, F):
