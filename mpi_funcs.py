@@ -51,15 +51,15 @@ def mpidot(comm, A, B):
     return recvbuf_C
                          
 
-def mpitensordot(comm, tensor1, tensor2, contracted_indices):
+def mpitensordot(comm, tensor1, tensor2, axes):
     """
-    Contracts two tensors together accoding to `contracted_indices' using mpi.
+    Contracts two tensors together accoding to `axes' using mpi.
 
     Parameters
     ----------
     tensor1            : The first tensor to contract.
     tensor2            : The second tensor that's contracted.
-    contracted_indices : The indices over which the two tensors will be
+    axes : The indices over which the two tensors will be
                          contracted.
 
     Returns
@@ -68,15 +68,15 @@ def mpitensordot(comm, tensor1, tensor2, contracted_indices):
                 over their common indices.
                     
     """
-    assert (len(contracted_indices) == 2)
+    assert (len(axes) == 2)
     
     # get the tensor shapes
     ts1 = tensor1.shape
     ts2 = tensor2.shape
     
     # get the contracted indices
-    ax1 = contracted_indices[0] # this is a tuple of indices for tensor1
-    ax2 = contracted_indices[1] # ditto for tensor2
+    ax1 = axes[0] # this is a tuple of indices for tensor1
+    ax2 = axes[1] # ditto for tensor2
     
     # build the transposed tuples
     idx1 = list(range(len(ts1)))
