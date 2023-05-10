@@ -650,7 +650,21 @@ class Four_Dimensional_Triad_Network:
         mid = np.einsum('iab, baj', self.D, self.E)
         self.C = np.einsum('ija, ak', self.C, mid)
         return [self.A, self.B, self.C, self.F]
-        
+
+    def tensor_trace(self,):
+        mid = np.tensordot(self.C, self.D, axes=([1,2], [1,0]))
+        mid = np.tensordot(self.B, mid, axes=([2], [0]))
+        mid = np.tensordot(mid, self.E, axes=([1,2], [1,0]))
+        mid = np.tensordot(self.A, mid, axes=([2], [0]))
+        mid = np.tensordot(mid, self.F, axes=([0,1,2], [2,1,0]))
+        return mid
+        #self.lognorms.append(np.log(mid))
+
+    def get_lognorms(self,):
+        lognorms = self.lognorms[:]
+        lognorms.append(np.log(self.tensor_trace()))
+        return lognorms
+
         
     
     
