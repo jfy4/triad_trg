@@ -177,30 +177,32 @@ class Four_Dimensional_Triad_Network:
 
     def normalize(self,):
         """normalize each tensor, and return the total."""
-        # normA = np.linalg.norm(self.A)
-        # normB = np.linalg.norm(self.B)
-        # normC = np.linalg.norm(self.C)
-        # normD = np.linalg.norm(self.D)
-        # normE = np.linalg.norm(self.E)
-        # normF = np.linalg.norm(self.F)
+        normA = np.linalg.norm(self.A)
+        normB = np.linalg.norm(self.B)
+        normC = np.linalg.norm(self.C)
+        normD = np.linalg.norm(self.D)
+        normE = np.linalg.norm(self.E)
+        normF = np.linalg.norm(self.F)
 
-        # self.A /= normA
-        # self.B /= normB
-        # self.C /= normC
-        # self.D /= normD
-        # self.E /= normE
-        # self.F /= normF
+        norm_list = [normA, normB, normC, normD, normE, normF]
 
-        # self.lognorms.append(np.log(normA*normB*normC*normD*normE*normF))
-        norm = self.norm()
-        smallnorm = norm**(1./6)
-        self.A /= smallnorm
-        self.B /= smallnorm
-        self.C /= smallnorm
-        self.D /= smallnorm
-        self.E /= smallnorm
-        self.F /= smallnorm
-        self.lognorms.append(np.log(norm))
+        self.A /= normA
+        self.B /= normB
+        self.C /= normC
+        self.D /= normD
+        self.E /= normE
+        self.F /= normF
+
+        self.lognorms.append(np.sum(np.log(norm_list)))
+        # norm = self.norm()
+        # smallnorm = norm**(1./6)
+        # self.A /= smallnorm
+        # self.B /= smallnorm
+        # self.C /= smallnorm
+        # self.D /= smallnorm
+        # self.E /= smallnorm
+        # self.F /= smallnorm
+        # self.lognorms.append(np.log(norm))
 
     def reconstruct(self,):
         one = np.einsum('ija, akl', self.A, self.B)

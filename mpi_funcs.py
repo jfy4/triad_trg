@@ -107,6 +107,9 @@ def mpitensordot(comm, tensor1, tensor2, axes):
     # print(tleft)
     tleft = tleft.reshape(final)
     return tleft
+
+
+    
     # make sparse matricies in CSR format
     # tlidx = np.asarray(tleft.keys())
     # tleft = sps.csr_matrix((tleft.values(), (tlidx[:,0], tlidx[:,1])), shape=tleft.shape)
