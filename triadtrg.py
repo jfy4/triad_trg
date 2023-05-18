@@ -1333,8 +1333,11 @@ class ThreeDimensionalTriadNetwork:
         lognorms = self.lognorms[:]
         mid = np.tensordot(self.B, self.C, axes=([1,2], [1,0]))
         other = np.tensordot(self.A, self.D, axes=([0,1], [2,1]))
-        print("trace = ", np.trace(np.dot(other.transpose(), mid)))
-        lognorms.append(np.log(np.trace(np.dot(other.transpose(), mid))))
+        trace = np.trace(np.dot(other.transpose(), mid))
+        print("trace = ", trace)
+        if trace < 0:
+            print("negative trace!")
+        lognorms.append(np.log(np.abs(np.trace(np.dot(other.transpose(), mid)))))
         return lognorms
 
     def get_imp_ratio(self,):
@@ -1351,7 +1354,11 @@ class ThreeDimensionalTriadNetwork:
     def tensor_trace(self,):
         mid = np.tensordot(self.B, self.C, axes=([1,2], [1,0]))
         other = np.tensordot(self.A, self.D, axes=([0,1], [2,1]))
-        self.lognorms.append(np.log(np.trace(np.dot(other.transpose(), mid))))
+        trace = np.trace(np.dot(other.transpose(), mid))
+        print("trace =", trace)
+        if trace < 0:
+            print("negative trace!")
+        self.lognorms.append(np.log(np.abs(trace)))
 
     # def imp_trace_ratio(self,):
     #     mid = np.tensordot(self.B, self.C, axes=([1,2], [1,0]))
