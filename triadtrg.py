@@ -690,6 +690,7 @@ class ThreeDimensionalTriadNetwork:
             self.B = triads[1]
             self.C = triads[2]
             self.D = triads[3]
+        print("Bond dimension =", self.dbond)
 
     def coarse_grain(self, normalize=True, all_vols=False):
         """The main coarse graining function."""
