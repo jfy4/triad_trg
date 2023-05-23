@@ -21,6 +21,70 @@ def getU(q, nums):
     return (U[:,idx])[:,:nums]
 
 
+# def split(matrix, cut=None, split='both'):
+#     """
+#     Splits a matrix in half using the SVD.
+    
+#     Parameters
+#     ----------
+#     matrix : The matrix to be split.
+#     cut    : (optional, default None) The number of states to keep on the internal 
+#              index.
+
+#     Returns
+#     -------
+#     left  : The left side of the split matrix.
+#     right : The right side of the split matrix.
+#     alpha : The size of the internal index.
+
+#     """
+#     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
+#     if (cut is not None):
+#         left, s, right = randomized_svd(matrix, n_components=cut) 
+#         alpha = min([len(s[s > 1e-14]), cut])
+#         if split == 'both':
+#             left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
+#             right = np.dot(np.diag(np.sqrt(s))[:alpha, :], right)
+#             # assert np.allclose(left.dot(right), matrix)
+#             return (left, right, alpha)
+#         elif split == 'left':
+#             # alpha = min([len(s[s > 1e-14]), cut])
+#             left = np.dot(left, np.diag(s)[:, :alpha])
+#             right = right[:alpha, :]
+#             # assert np.allclose(left.dot(right), matrix)
+#             return (left, right, alpha)
+#         elif split == 'right':
+#             # alpha = min([len(s[s > 1e-14]), cut])
+#             left = left[:, :alpha]
+#             right = np.dot(np.diag(s)[:alpha, :], right)
+#             # assert np.allclose(left.dot(right), matrix)
+#             return (left, right, alpha)
+#         else:
+#             raise ValueError("split must be a valid option.")
+#     else:
+#         left, s, right = np.linalg.svd(matrix, full_matrices=False)
+#         if split == 'both':
+#             alpha = len(s[s > 1e-14])
+#             left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
+#             right = np.dot(np.diag(np.sqrt(s))[:alpha, :], right)
+#             # assert np.allclose(left.dot(right), matrix)
+#             return (left, right, alpha)
+#         elif split == 'left':
+#             alpha = len(s[s > 1e-14])
+#             left = np.dot(left, np.diag(s)[:, :alpha])
+#             right = right[:alpha, :]
+#             # assert np.allclose(left.dot(right), matrix)
+#             return (left, right, alpha)
+#         elif split == 'right':
+#             alpha = len(s[s > 1e-14])
+#             left = left[:, :alpha]
+#             right = np.dot(np.diag(s)[:alpha, :], right)
+#             # assert np.allclose(left.dot(right), matrix)
+#             return (left, right, alpha)
+#         else:
+#             raise ValueError("split must be a valid option.")
+
+
 def split(matrix, cut=None, split='both'):
     """
     Splits a matrix in half using the SVD.
@@ -40,7 +104,8 @@ def split(matrix, cut=None, split='both'):
     """
     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
     if (cut is not None):
-        left, s, right = randomized_svd(matrix, n_components=cut) 
+        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        # left, s, right = randomized_svd(matrix, n_components=cut) 
         alpha = min([len(s[s > 1e-14]), cut])
         if split == 'both':
             left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])

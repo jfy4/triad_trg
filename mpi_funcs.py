@@ -53,7 +53,7 @@ def mpidot(comm, A, B):
 
 def mpitensordot(comm, tensor1, tensor2, axes):
     """
-    Contracts two tensors together accoding to `axes' using mpi.
+    Contracts two tensors together according to `axes' using mpi.
 
     Parameters
     ----------
