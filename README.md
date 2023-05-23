@@ -1,4 +1,4 @@
 # Triad HOTRG
 triad trg code
 
-Needs: numpy, 
+Needs: numpy, scipy, sklearn
