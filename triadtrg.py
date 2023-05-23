@@ -2,6 +2,7 @@ import numpy as np
 import sys
 from scipy.linalg import eigh
 import warnings
+from sklearn.utils.extmath import randomized_svd
 
 
 def getU(q, nums):
@@ -37,23 +38,23 @@ def split(matrix, cut=None, split='both'):
     alpha : The size of the internal index.
 
     """
-    left, s, right = np.linalg.svd(matrix, full_matrices=False)
     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
     if (cut is not None):
+        left, s, right = randomized_svd(matrix, n_components=cut) 
+        alpha = min([len(s[s > 1e-14]), cut])
         if split == 'both':
-            alpha = min([len(s[s > 1e-14]), cut])
             left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
             right = np.dot(np.diag(np.sqrt(s))[:alpha, :], right)
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         elif split == 'left':
-            alpha = min([len(s[s > 1e-14]), cut])
+            # alpha = min([len(s[s > 1e-14]), cut])
             left = np.dot(left, np.diag(s)[:, :alpha])
             right = right[:alpha, :]
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         elif split == 'right':
-            alpha = min([len(s[s > 1e-14]), cut])
+            # alpha = min([len(s[s > 1e-14]), cut])
             left = left[:, :alpha]
             right = np.dot(np.diag(s)[:alpha, :], right)
             # assert np.allclose(left.dot(right), matrix)
@@ -61,6 +62,7 @@ def split(matrix, cut=None, split='both'):
         else:
             raise ValueError("split must be a valid option.")
     else:
+        left, s, right = np.linalg.svd(matrix, full_matrices=False)
         if split == 'both':
             alpha = len(s[s > 1e-14])
             left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
