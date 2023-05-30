@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from scipy.linalg import eigh
 import warnings
-from sklearn.utils.extmath import randomized_svd
+# from sklearn.utils.extmath import randomized_svd
 
 
 def getU(q, nums):
