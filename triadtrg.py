@@ -895,6 +895,11 @@ class ThreeDimensionalTriadNetwork:
             
             self.D = self.D.reshape((gamma, ss[4], ss[5]))
 
+    def load_nn_imp(self, triads1, triads2):
+        self.Aimp1, self.Bimp1, self.Cimp1, self.Dimp1 = triads1
+        self.Aimp2, self.Bimp2, self.Cimp2, self.Dimp2 = triads2
+        self.nnimp = True
+            
             
     def get_nn_imp_triads(self, tensor1, tensor2):
         """ 
