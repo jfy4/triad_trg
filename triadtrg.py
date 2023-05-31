@@ -763,10 +763,6 @@ class ThreeDimensionalTriadNetwork:
         """The main coarse graining function."""
         # print("Coarsening third dimension...")
         dirs = ['x', 'y', 'z']
-        # for x in range(nx):
-        #     print("#############")
-        #     print("# ", x+1, "of", nx, " #")
-        #     print("#############")
         for d in dirs:
             print("doing " + d)
             self.update_triads()
@@ -896,6 +892,11 @@ class ThreeDimensionalTriadNetwork:
             self.D = self.D.reshape((gamma, ss[4], ss[5]))
 
     def load_nn_imp(self, triads1, triads2):
+        """
+        Load in the two impure tensors for the nearest neighbor
+        interaction.
+
+        """
         self.Aimp1, self.Bimp1, self.Cimp1, self.Dimp1 = triads1
         self.Aimp2, self.Bimp2, self.Cimp2, self.Dimp2 = triads2
         self.nnimp = True
@@ -1383,14 +1384,12 @@ class ThreeDimensionalTriadNetwork:
 
 
         
-    def make_new_triads(self, U, V):
-        
+    def make_new_triads(self, U, V):        
         G = self.makeD(U, V)
         G = self.makeA(G, U, V)
         self.makeBC(G)
 
     def make_new_impure_triads(self, U, V):
-
         G = self.makeDimp(U, V)
         G = self.makeAimp(G, U, V)
         self.makeBCimp(G)
