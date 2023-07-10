@@ -1022,6 +1022,7 @@ class ThreeDimensionalTriadNetwork:
             
             self.Dimp = self.Dimp.reshape((gamma, ss[4], ss[5]))
             self.imp = True
+        print("made impure triads.")
 
 
     def make_2d_triads(self,):
