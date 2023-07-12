@@ -778,38 +778,59 @@ class ThreeDimensionalTriadNetwork:
 
     def normalize(self,):
         """normalize each tensor, and return the total."""
-        # normA = np.linalg.norm(self.A)
-        # normB = np.linalg.norm(self.B)
-        # normC = np.linalg.norm(self.C)
-        # normD = np.linalg.norm(self.D)
+        normA = np.linalg.norm(self.A)
+        normB = np.linalg.norm(self.B)
+        normC = np.linalg.norm(self.C)
+        normD = np.linalg.norm(self.D)
 
-        # self.A /= normA
-        # self.B /= normB
-        # self.C /= normC
-        # self.D /= normD
+        self.A /= normA
+        self.B /= normB
+        self.C /= normC
+        self.D /= normD
 
-        # self.lognorms.append(np.log(normA*normB*normC*normD))
-        norm = self.norm()
-        print("norm = ", norm)
-        self.A /= norm**0.25
-        self.B /= norm**0.25
-        self.C /= norm**0.25
-        self.D /= norm**0.25
         if self.nnimp:
-            self.Aimp1 /= norm**0.25
-            self.Bimp1 /= norm**0.25
-            self.Cimp1 /= norm**0.25
-            self.Dimp1 /= norm**0.25
-            self.Aimp2 /= norm**0.25
-            self.Bimp2 /= norm**0.25
-            self.Cimp2 /= norm**0.25
-            self.Dimp2 /= norm**0.25            
+            self.Aimp1 /= normA
+            self.Bimp1 /= normB
+            self.Cimp1 /= normC
+            self.Dimp1 /= normD
+            self.Aimp2 /= normA
+            self.Bimp2 /= normB
+            self.Cimp2 /= normC
+            self.Dimp2 /= normD
+            print("normalized the nn impure triads.")
         if self.imp:
-            self.Aimp /= norm**0.25
-            self.Bimp /= norm**0.25
-            self.Cimp /= norm**0.25
-            self.Dimp /= norm**0.25
-        self.lognorms.append(np.log(norm))
+            self.Aimp /= normA
+            self.Bimp /= normB
+            self.Cimp /= normC
+            self.Dimp /= normD
+            print("normalized the impure triads.")
+        self.lognorms.append(np.log(normA*normB*normC*normD))
+            
+            
+        # norm = self.norm()
+        # print("norm = ", norm)
+        # self.A /= norm**0.25
+        # self.B /= norm**0.25
+        # self.C /= norm**0.25
+        # self.D /= norm**0.25
+        # print("normalized the pure triads.")
+        # if self.nnimp:
+        #     self.Aimp1 /= norm**0.25
+        #     self.Bimp1 /= norm**0.25
+        #     self.Cimp1 /= norm**0.25
+        #     self.Dimp1 /= norm**0.25
+        #     self.Aimp2 /= norm**0.25
+        #     self.Bimp2 /= norm**0.25
+        #     self.Cimp2 /= norm**0.25
+        #     self.Dimp2 /= norm**0.25
+        #     print("normalized the nn impure triads.")
+        # if self.imp:
+        #     self.Aimp /= norm**0.25
+        #     self.Bimp /= norm**0.25
+        #     self.Cimp /= norm**0.25
+        #     self.Dimp /= norm**0.25
+        #     print("normalized the impure triads.")
+        # self.lognorms.append(np.log(norm))
 
     def reconstruct(self,):
         """
