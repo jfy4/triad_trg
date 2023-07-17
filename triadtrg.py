@@ -748,6 +748,7 @@ class ThreeDimensionalTriadNetwork:
         self.imp = False
         self.nnimp = False
         self.time_first = time_first
+        self.Xlist = list()
         if normlist is not None:
             self.lognorms = normlist
         else:
@@ -765,6 +766,9 @@ class ThreeDimensionalTriadNetwork:
         dirs = ['x', 'y', 'z']
         for d in dirs:
             print("doing " + d)
+            X = self.makeX1()
+            self.Xlist.append(X)
+            print("X1 = ", X)
             self.update_triads()
             if normalize:
                 self.normalize()
@@ -1047,17 +1051,24 @@ class ThreeDimensionalTriadNetwork:
 
 
     def makeX1(self,):
+        mid = np.tensordot(self.B, self.C, axes=([1], [1]))
+        mid = np.tensordot(mid, mid, axes=([1,2], [2,1]))
+        ends = np.tensordot(self.A, self.D, axes=([0,1],[2,1]))
+        full = np.tensordot(mid, ends, axes=([0,3],[0,1]))
+        full = np.tensordot(full, ends, axes=([0,1], [1,0]))
+        
         mid = np.tensordot(self.B, self.C, axes=([1,2], [1,0]))
         other = np.tensordot(self.A, self.D, axes=([0,1], [2,1]))
         trace = np.trace(np.dot(other.transpose(), mid))
         numerator = trace**2
 
-        A = np.tensordot(self.A, mid, axes=([2], [0]))
-        D = np.tensordot(mid, self.D, axes=([1], [0]))
-        top = np.tensordot(A, D, axes=([0], [2]))
-        bot = np.tensordot(self.D, self.A, axes=([2], [0]))
-        full = np.tensordot(top, bot, axes=([0,1,2,3],[1,0,3,2]))
-        return fullg
+        return numerator / full
+        # A = np.tensordot(self.A, mid, axes=([2], [0]))
+        # D = np.tensordot(mid, self.D, axes=([1], [0]))
+        # top = np.tensordot(A, D, axes=([0], [2]))
+        # bot = np.tensordot(self.D, self.A, axes=([2], [0]))
+        # full = np.tensordot(top, bot, axes=([0,1,2,3],[1,0,3,2]))
+        # return full
 
 
     def make_2d_triads(self,):
