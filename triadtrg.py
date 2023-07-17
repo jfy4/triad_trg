@@ -1057,7 +1057,7 @@ class ThreeDimensionalTriadNetwork:
         top = np.tensordot(A, D, axes=([0], [2]))
         bot = np.tensordot(self.D, self.A, axes=([2], [0]))
         full = np.tensordot(top, bot, axes=([0,1,2,3],[1,0,3,2]))
-        return fullg
+        return full
 
 
     def make_2d_triads(self,):
