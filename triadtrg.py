@@ -787,7 +787,7 @@ class ThreeDimensionalTriadNetwork:
         self.B /= normB
         self.C /= normC
         self.D /= normD
-
+        print("normalized the pure triads.")
         if self.nnimp:
             self.Aimp1 /= normA
             self.Bimp1 /= normB
@@ -1044,6 +1044,20 @@ class ThreeDimensionalTriadNetwork:
             self.Dimp = self.Dimp.reshape((gamma, ss[4], ss[5]))
             self.imp = True
         print("made impure triads.")
+
+
+    def makeX1(self,):
+        mid = np.tensordot(self.B, self.C, axes=([1,2], [1,0]))
+        other = np.tensordot(self.A, self.D, axes=([0,1], [2,1]))
+        trace = np.trace(np.dot(other.transpose(), mid))
+        numerator = trace**2
+
+        A = np.tensordot(self.A, mid, axes=([2], [0]))
+        D = np.tensordot(mid, self.D, axes=([1], [0]))
+        top = np.tensordot(A, D, axes=([0], [2]))
+        bot = np.tensordot(self.D, self.A, axes=([2], [0]))
+        full = np.tensordot(top, bot, axes=([0,1,2,3],[1,0,3,2]))
+        return fullg
 
 
     def make_2d_triads(self,):
