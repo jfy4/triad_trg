@@ -1148,7 +1148,12 @@ class ThreeDimensionalTriadNetwork:
         temp = temp.reshape((x, x, x, x)).transpose((2, 0, 3, 1))
         return temp.reshape((x**2, x**2))
 
-    
+    def make_q_from_triads(self, A, B, C, D):
+        s1 = self.getS(A)
+        s2 = self.getS(B)
+        r2, r3 = self.getR23(C, D, B)
+        q = self.getQ(s1, s2, r2, r3)
+        return q
 
     def update_triads(self, getV=True):
         """
@@ -1156,6 +1161,20 @@ class ThreeDimensionalTriadNetwork:
         Q upto updating the individual triads.
 
         """
+        # make the left isometry
+        q = self.make_q_from_triads(self.A, self.B, self.C, self.D)
+        Uleft = getU(q, self.A.shape[0]**2)
+        # make the back isometry
+        q = self.make_q_from_triads(self.D.transpose((1,2,0)),
+                                    self.C.transpose((2,1,0)),
+                                    self.B.transpose((2,1,0)),
+                                    self.A.transpose((2,0,1)))
+        Uback = getU(q, self.D.shape[1]**2)
+        q = self.make_q_from_triads(self.D.transpose((2,1,0)),
+                                    self.C.transpose((2,1,0)),
+                                    self.B.transpose((2,1,0)),
+                                    self.A.transpose((2,1,0)))
+        Uright = getU(q, self.D.shape[2]**2)
         if getV:      # I use the same layout just transpose the tensors
             s1 = self.getS(self.A)
             s2 = self.getS(self.B)
