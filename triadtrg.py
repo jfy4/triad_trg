@@ -6,7 +6,7 @@ import warnings
 
 
 def getU(q, nums):
-    qs = q.shape
+    # qs = q.shape
     # O = eigh(q, subset_by_index=[qs[0]-nums, qs[0]-1])
     # O = eigh(q, eigvals=(qs[0]-nums, qs[0]-1))
     if not np.allclose(q, q.conjugate().transpose()):
@@ -1164,17 +1164,25 @@ class ThreeDimensionalTriadNetwork:
         # make the left isometry
         q = self.make_q_from_triads(self.A, self.B, self.C, self.D)
         Uleft = getU(q, self.A.shape[0]**2)
+        evals_left, Uleft = np.linalg.eigh(q)
+        # make the right isometry
+        q = self.make_q_from_triads(self.D.transpose((2,1,0)),
+                                    self.C.transpose((2,1,0)),
+                                    self.B.transpose((2,1,0)),
+                                    self.A.transpose((2,1,0)))
+        evals_right, Uright = np.linalg.eigh(q)
         # make the back isometry
         q = self.make_q_from_triads(self.D.transpose((1,2,0)),
                                     self.C.transpose((2,1,0)),
                                     self.B.transpose((2,1,0)),
                                     self.A.transpose((2,0,1)))
         Uback = getU(q, self.D.shape[1]**2)
-        q = self.make_q_from_triads(self.D.transpose((2,1,0)),
-                                    self.C.transpose((2,1,0)),
-                                    self.B.transpose((2,1,0)),
-                                    self.A.transpose((2,1,0)))
-        Uright = getU(q, self.D.shape[2]**2)
+        # make the front isometry
+        q = self.make_q_from_triads(self.A.transpose((1,0,2)),
+                                    self.B,
+                                    self.C,
+                                    self.D.transpose((0,2,1)))
+        Ufront = getU(q, self.A.shape[1]**2)
         if getV:      # I use the same layout just transpose the tensors
             s1 = self.getS(self.A)
             s2 = self.getS(self.B)
