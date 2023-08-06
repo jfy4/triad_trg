@@ -1163,7 +1163,7 @@ class ThreeDimensionalTriadNetwork:
         """
         # make the left isometry
         q = self.make_q_from_triads(self.A, self.B, self.C, self.D)
-        Uleft = getU(q, self.A.shape[0]**2)
+        # Uleft = getU(q, self.A.shape[0]**2)
         evals_left, Uleft = np.linalg.eigh(q)
         Wdag = np.diag(1/np.sqrt(np.abs(evals_left))).dot(Uleft.transpose())
         W = Uleft.dot(np.diag(np.sqrt(np.abs(evals_left))))
@@ -1179,18 +1179,35 @@ class ThreeDimensionalTriadNetwork:
         assert np.isclose(U.dot(Udag), np.eye(U.shape[0]))
         center = Udag.dor(W)
         u, s, vdag = np.linalg.svd(center)
+        left_isometry = U.dot(u)
+        right_isometry = vdag.dot(Wdag)
+        # done with left and right
+        # starting front and back
         # make the back isometry
         q = self.make_q_from_triads(self.D.transpose((1,2,0)),
                                     self.C.transpose((2,1,0)),
                                     self.B.transpose((2,1,0)),
                                     self.A.transpose((2,0,1)))
-        Uback = getU(q, self.D.shape[1]**2)
+        evals_back, Uback = np.linalg.eigh(q)
+        Wdag = np.diag(1/np.sqrt(np.abs(evals_back))).dot(Uback.transpose())
+        W = Uback.dot(np.diag(np.sqrt(np.abs(evals_back))))
+        assert np.isclose(W.dot(Wdag), np.eye(W.shape[0]))
+        # Uback = getU(q, self.D.shape[1]**2)
         # make the front isometry
         q = self.make_q_from_triads(self.A.transpose((1,0,2)),
                                     self.B,
                                     self.C,
                                     self.D.transpose((0,2,1)))
-        Ufront = getU(q, self.A.shape[1]**2)
+        # Ufront = getU(q, self.A.shape[1]**2)
+        # make the right isometry
+        evals_front, Ufront = np.linalg.eigh(q)
+        U = Ufront.dot(np.diag(1/np.sqrt(np.abs(evals_front))))
+        Udag = np.diag(np.sqrt(np.abs(evals_front))).dot(Ufront.transpose())
+        assert np.isclose(U.dot(Udag), np.eye(U.shape[0]))
+        center = Udag.dor(W)
+        u, s, vdag = np.linalg.svd(center)
+        front_isometry = U.dot(u)
+        back_isometry = vdag.dot(Wdag)
         if getV:      # I use the same layout just transpose the tensors
             s1 = self.getS(self.A)
             s2 = self.getS(self.B)
