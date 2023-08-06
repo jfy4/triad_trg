@@ -1165,12 +1165,20 @@ class ThreeDimensionalTriadNetwork:
         q = self.make_q_from_triads(self.A, self.B, self.C, self.D)
         Uleft = getU(q, self.A.shape[0]**2)
         evals_left, Uleft = np.linalg.eigh(q)
+        Wdag = np.diag(1/np.sqrt(np.abs(evals_left))).dot(Uleft.transpose())
+        W = Uleft.dot(np.diag(np.sqrt(np.abs(evals_left))))
+        assert np.isclose(W.dot(Wdag), np.eye(W.shape[0]))
         # make the right isometry
         q = self.make_q_from_triads(self.D.transpose((2,1,0)),
                                     self.C.transpose((2,1,0)),
                                     self.B.transpose((2,1,0)),
                                     self.A.transpose((2,1,0)))
         evals_right, Uright = np.linalg.eigh(q)
+        U = Uright.dot(np.diag(1/np.sqrt(np.abs(evals_right))))
+        Udag = np.diag(np.sqrt(np.abs(evals_right))).dot(Uright.transpose())
+        assert np.isclose(U.dot(Udag), np.eye(U.shape[0]))
+        center = Udag.dor(W)
+        u, s, vdag = np.linalg.svd(center)
         # make the back isometry
         q = self.make_q_from_triads(self.D.transpose((1,2,0)),
                                     self.C.transpose((2,1,0)),
