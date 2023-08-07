@@ -1165,8 +1165,8 @@ class ThreeDimensionalTriadNetwork:
 
     def update_triads(self, getV=True):
         """
-        updates the triads starting from computing
-        Q upto updating the individual triads.
+        Computes the squeezers for each direction, then
+        updates each direction using them.
 
         """
         # make the left isometry
@@ -1210,9 +1210,11 @@ class ThreeDimensionalTriadNetwork:
         else:
             front_isometry = Wdag.dot(u[:, :self.dbond])
         if self.imp:
-            self.make_new_impure_triads(U, V)
+            self.make_new_impure_triads(left_isometry, right_isometry,
+                                        front_isometry, back_isometry)
         if self.nnimp:
-            self.contract_nn_triads(U, V)
+            self.contract_nn_triads(left_isometry, right_isometry,
+                                    front_isometry, back_isometry)
             self.nnimp = False
             self.imp = True
         # self.make_new_triads(U, V)
@@ -1451,14 +1453,14 @@ class ThreeDimensionalTriadNetwork:
         G = self.makeA(G, left, front)
         self.makeBC(G)
 
-    def make_new_impure_triads(self, U, V):
-        G = self.makeDimp(U, V)
-        G = self.makeAimp(G, U, V)
+    def make_new_impure_triads(self, left, right, front, back):
+        G = self.makeDimp(right, back)
+        G = self.makeAimp(G, left, front)
         self.makeBCimp(G)
 
-    def contract_nn_triads(self, U, V):
-        G = self.makeDnnimp(U, V)
-        G = self.makeAnnimp(G, U, V)
+    def contract_nn_triads(self, left, right, front, back):
+        G = self.makeDnnimp(right, back)
+        G = self.makeAnnimp(G, left, front)
         self.makeBCimp(G)
         
         
