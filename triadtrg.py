@@ -1157,6 +1157,7 @@ class ThreeDimensionalTriadNetwork:
 
     def get_UUdag(self, A, B, C, D):
         q = self.make_q_from_triads(A, B, C, D)
+        assert np.isclose(q, q.conjugate().transpose())
         evals_left, Uleft = np.linalg.eigh(q)
         Udag = Uleft.dot(np.diag(1/np.sqrt(np.abs(evals_left))))
         U = Uleft.dot(np.diag(np.sqrt(np.abs(evals_left))))
@@ -1172,17 +1173,17 @@ class ThreeDimensionalTriadNetwork:
         U, Udag = self.get_UUdag(self.A, self.B, self.C, self.D)
         # make the right isometry
         W, Wdag = self.get_UUdag(self.D.transpose((2,1,0)),
-                                    self.C.transpose((2,1,0)),
-                                    self.B.transpose((2,1,0)),
-                                    self.A.transpose((2,1,0)))
+                                 self.C.transpose((2,1,0)),
+                                 self.B.transpose((2,1,0)),
+                                 self.A.transpose((2,1,0)))
         center = W.transpose().dot(U)
         u, vdag, alpha = split(center)
-        if vdag.shape[0] < self.dbond:
+        if alpha < self.dbond:
             left_isometry = Udag.dot(vdag.transpose())
         else:
             left_isometry = Udag.dot(vdag.transpose()[:,:self.dbond])
             # left_isometry = vdag[:self.dbond, :].dot(Udag)
-        if u.shape[1] < self.dbond:
+        if alpha < self.dbond:
             right_isometry = Wdag.dot(u)
         else:
             right_isometry = Wdag.dot(u[:, :self.dbond])
