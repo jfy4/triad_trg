@@ -1148,6 +1148,30 @@ class ThreeDimensionalTriadNetwork:
         temp = temp.reshape((x, x, x, x)).transpose((2, 0, 3, 1))
         return temp.reshape((x**2, x**2))
 
+    def make_q_from_triads(self, A, B, C, D):
+        """
+        A generic make Q method for any four triads.
+
+        """
+        s1 = self.getS(A)
+        s2 = self.getS(B)
+        r2, r3 = self.getR23(C, D, B)
+        q = self.getQ(s1, s2, r2, r3)
+        return q
+
+    def get_UUdag(self, A, B, C, D):
+        """
+        From the Q matrix this gets the isometry and the
+        singular values from the eigenvalues.
+
+        """
+        q = self.make_q_from_triads(A, B, C, D)
+        assert np.allclose(q, q.conjugate().transpose())
+        evals_left, Uleft = np.linalg.eigh(q)
+        # Udag = Uleft.dot(np.diag(1/np.sqrt(np.abs(evals_left))))
+        # U = Uleft.dot(np.diag(np.sqrt(np.abs(evals_left))))
+        return Uleft
+
     
 
     def update_triads(self, getV=True):
@@ -1156,48 +1180,104 @@ class ThreeDimensionalTriadNetwork:
         Q upto updating the individual triads.
 
         """
-        if getV:      # I use the same layout just transpose the tensors
-            s1 = self.getS(self.A)
-            s2 = self.getS(self.B)
-            r2, r3 = self.getR23(self.C, self.D, self.B)
-            q = self.getQ(s1, s2, r2, r3)
-            if (self.A.shape[0]**2 < self.dbond):
-                U = getU(q, self.A.shape[0]**2)
-                # U = np.eye(U.shape[0])
-            else:
-                U = getU(q, self.dbond)
-                # U = np.eye(U.shape[0])
-            s1 = self.getS(self.D.transpose((1,2,0)))
-            s2 = self.getS(self.C.transpose((2,1,0)))
-            r2, r3 = self.getR23(self.B.transpose((2,1,0)),
-                                 self.A.transpose((2,0,1)),
-                                 self.C.transpose((2,1,0)))
-            q = self.getQ(s1, s2, r2, r3)
-            if (self.D.shape[1]**2 < self.dbond):
-                V = getU(q, self.D.shape[1]**2)
-                # V = np.eye(V.shape[0])
-            else:
-                V = getU(q, self.dbond)
-                # V = np.eye(V.shape[0])
+        # make the left isometry
+        Uleft = self.get_UUdag(self.A, self.B, self.C, self.D)
+        # make the right isometry
+        Uright = self.get_UUdag(self.D.transpose((2,1,0)),
+                                 self.C.transpose((2,1,0)),
+                                 self.B.transpose((2,1,0)),
+                                 self.A.transpose((2,1,0)))
+        # center = W.transpose().dot(U)
+        # u, vdag, alpha = split(center)
+        alpha = Uleft.shape[1]
+        if alpha < self.dbond:
+            left_isometry = Uleft
         else:
-            s1 = self.getS(self.A)
-            s2 = self.getS(self.B)
-            r2, r3 = self.getR23(self.C, self.D, self.B)
-            q = self.getQ(s1, s2, r2, r3)
-            if (self.A.shape[0]**2 < self.dbond):
-                U = getU(q, self.A.shape[0]**2)
-                # U = np.eye(U.shape[0])
-            else:
-                U = getU(q, self.dbond)
-                # U = np.eye(U.shape[0])
-            V = U
+            left_isometry = Uleft[:, :self.dbond]
+        # left_isometry = vdag[:self.dbond, :].dot(Udag)
+        alpha = Uright.shape[1]
+        if alpha < self.dbond:
+            right_isometry = Uright
+        else:
+            right_isometry = Uright[:, :self.dbond]
+        # done with left and right
+        # starting front and back
+        # make the back isometry
+        Uback = self.get_UUdag(self.D.transpose((1,2,0)),
+                                 self.C.transpose((2,1,0)),
+                                 self.B.transpose((2,1,0)),
+                                 self.A.transpose((2,0,1)))        
+        # make the front isometry
+        Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
+                                 self.B,
+                                 self.C,
+                                 self.D.transpose((0,2,1)))
+        # center = W.transpose().dot(U)
+        # u, vdag, alpha = split(center)
+        alpha = Uback.shape[1]
+        if alpha < self.dbond:
+            back_isometry = Uback
+        else:
+            back_isometry = Uback[:, :self.dbond]
+        alpha = Ufront.shape[1]    
+        if alpha < self.dbond:
+            front_isometry = Uback
+        else:
+            front_isometry = Uback[:, :self.dbond]
         if self.imp:
-            self.make_new_impure_triads(U, V)
+            self.make_new_impure_triads(left_isometry, right_isometry,
+                                        front_isometry, back_isometry)
         if self.nnimp:
-            self.contract_nn_triads(U, V)
+            self.contract_nn_triads(left_isometry, right_isometry,
+                                    front_isometry, back_isometry)
             self.nnimp = False
             self.imp = True
-        self.make_new_triads(U, V)        
+        # self.make_new_triads(U, V)
+        self.make_new_triads(left_isometry, right_isometry,
+                             front_isometry, back_isometry)
+
+        # if getV:      # I use the same layout just transpose the tensors
+        #     s1 = self.getS(self.A)
+        #     s2 = self.getS(self.B)
+        #     r2, r3 = self.getR23(self.C, self.D, self.B)
+        #     q = self.getQ(s1, s2, r2, r3)
+        #     if (self.A.shape[0]**2 < self.dbond):
+        #         U = getU(q, self.A.shape[0]**2)
+        #         # U = np.eye(U.shape[0])
+        #     else:
+        #         U = getU(q, self.dbond)
+        #         # U = np.eye(U.shape[0])
+        #     s1 = self.getS(self.D.transpose((1,2,0)))
+        #     s2 = self.getS(self.C.transpose((2,1,0)))
+        #     r2, r3 = self.getR23(self.B.transpose((2,1,0)),
+        #                          self.A.transpose((2,0,1)),
+        #                          self.C.transpose((2,1,0)))
+        #     q = self.getQ(s1, s2, r2, r3)
+        #     if (self.D.shape[1]**2 < self.dbond):
+        #         V = getU(q, self.D.shape[1]**2)
+        #         # V = np.eye(V.shape[0])
+        #     else:
+        #         V = getU(q, self.dbond)
+        #         # V = np.eye(V.shape[0])
+        # else:
+        #     s1 = self.getS(self.A)
+        #     s2 = self.getS(self.B)
+        #     r2, r3 = self.getR23(self.C, self.D, self.B)
+        #     q = self.getQ(s1, s2, r2, r3)
+        #     if (self.A.shape[0]**2 < self.dbond):
+        #         U = getU(q, self.A.shape[0]**2)
+        #         # U = np.eye(U.shape[0])
+        #     else:
+        #         U = getU(q, self.dbond)
+        #         # U = np.eye(U.shape[0])
+        #     V = U
+        # if self.imp:
+        #     self.make_new_impure_triads(U, V)
+        # if self.nnimp:
+        #     self.contract_nn_triads(U, V)
+        #     self.nnimp = False
+        #     self.imp = True
+        # self.make_new_triads(U, V)        
 
     def makeD(self, U, V):
         """
