@@ -1203,23 +1203,23 @@ class ThreeDimensionalTriadNetwork:
         # done with left and right
         # starting front and back
         # make the back isometry
-        # Uback = self.get_UUdag(self.D.transpose((1,2,0)),
-        #                        self.C.transpose((2,1,0)),
-        #                        self.B.transpose((2,1,0)),
-        #                        self.A.transpose((2,0,1)))        
         Uback = self.get_UUdag(self.D.transpose((1,2,0)),
                                self.C.transpose((2,1,0)),
                                self.B.transpose((2,1,0)),
-                               self.A.transpose((2,1,0)))        
+                               self.A.transpose((2,0,1)))        
+        # Uback = self.get_UUdag(self.D.transpose((1,2,0)),
+        #                        self.C.transpose((2,1,0)),
+        #                        self.B.transpose((2,1,0)),
+        #                        self.A.transpose((2,1,0)))        
         # make the front isometry
-        Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
-                                self.B,
-                                self.C,
-                                self.D)
         # Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
         #                         self.B,
         #                         self.C,
-        #                         self.D.transpose((0,2,1)))
+        #                         self.D)
+        Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
+                                self.B,
+                                self.C,
+                                self.D.transpose((0,2,1)))
         # center = W.transpose().dot(U)
         # u, vdag, alpha = split(center)
         alpha = Uback.shape[1]
