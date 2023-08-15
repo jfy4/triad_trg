@@ -1139,6 +1139,11 @@ class ThreeDimensionalTriadNetwork:
 
 
     def getQ(self, s1, s2, r2, r3):
+        """
+        Computes the Q matrix from smaller S and R
+        matrices using triads.
+
+        """
         ss = s1.shape
         x = int(np.rint(np.sqrt(ss[0])))
         temp = s1.dot(s2)
@@ -1149,6 +1154,10 @@ class ThreeDimensionalTriadNetwork:
         return temp.reshape((x**2, x**2))
 
     def make_q_from_triads(self, A, B, C, D):
+        """
+        A generic make Q method for any four triads.
+
+        """
         s1 = self.getS(A)
         s2 = self.getS(B)
         r2, r3 = self.getR23(C, D, B)
@@ -1156,6 +1165,11 @@ class ThreeDimensionalTriadNetwork:
         return q
 
     def get_UUdag(self, A, B, C, D):
+        """
+        From the Q matrix this gets the isometry and the
+        singular values from the eigenvalues.
+
+        """
         q = self.make_q_from_triads(A, B, C, D)
         assert np.allclose(q, q.conjugate().transpose())
         evals_left, Uleft = np.linalg.eigh(q)
