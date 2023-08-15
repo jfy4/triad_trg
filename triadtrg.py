@@ -6,7 +6,7 @@ import warnings
 
 
 def getU(q, nums):
-    qs = q.shape
+    # qs = q.shape
     # O = eigh(q, subset_by_index=[qs[0]-nums, qs[0]-1])
     # O = eigh(q, eigvals=(qs[0]-nums, qs[0]-1))
     if not np.allclose(q, q.conjugate().transpose()):
@@ -1184,9 +1184,9 @@ class ThreeDimensionalTriadNetwork:
         Uleft = self.get_UUdag(self.A, self.B, self.C, self.D)
         # make the right isometry
         Uright = self.get_UUdag(self.D.transpose((2,1,0)),
-                                 self.C.transpose((2,1,0)),
-                                 self.B.transpose((2,1,0)),
-                                 self.A.transpose((2,1,0)))
+                                self.C.transpose((2,1,0)),
+                                self.B.transpose((2,1,0)),
+                                self.A.transpose((2,1,0)))
         # center = W.transpose().dot(U)
         # u, vdag, alpha = split(center)
         alpha = Uleft.shape[1]
@@ -1203,15 +1203,23 @@ class ThreeDimensionalTriadNetwork:
         # done with left and right
         # starting front and back
         # make the back isometry
+        # Uback = self.get_UUdag(self.D.transpose((1,2,0)),
+        #                        self.C.transpose((2,1,0)),
+        #                        self.B.transpose((2,1,0)),
+        #                        self.A.transpose((2,0,1)))        
         Uback = self.get_UUdag(self.D.transpose((1,2,0)),
-                                 self.C.transpose((2,1,0)),
-                                 self.B.transpose((2,1,0)),
-                                 self.A.transpose((2,0,1)))        
+                               self.C.transpose((2,1,0)),
+                               self.B.transpose((2,1,0)),
+                               self.A.transpose((2,1,0)))        
         # make the front isometry
         Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
-                                 self.B,
-                                 self.C,
-                                 self.D.transpose((0,2,1)))
+                                self.B,
+                                self.C,
+                                self.D)
+        # Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
+        #                         self.B,
+        #                         self.C,
+        #                         self.D.transpose((0,2,1)))
         # center = W.transpose().dot(U)
         # u, vdag, alpha = split(center)
         alpha = Uback.shape[1]
@@ -1236,48 +1244,6 @@ class ThreeDimensionalTriadNetwork:
         self.make_new_triads(left_isometry, right_isometry,
                              front_isometry, back_isometry)
 
-        # if getV:      # I use the same layout just transpose the tensors
-        #     s1 = self.getS(self.A)
-        #     s2 = self.getS(self.B)
-        #     r2, r3 = self.getR23(self.C, self.D, self.B)
-        #     q = self.getQ(s1, s2, r2, r3)
-        #     if (self.A.shape[0]**2 < self.dbond):
-        #         U = getU(q, self.A.shape[0]**2)
-        #         # U = np.eye(U.shape[0])
-        #     else:
-        #         U = getU(q, self.dbond)
-        #         # U = np.eye(U.shape[0])
-        #     s1 = self.getS(self.D.transpose((1,2,0)))
-        #     s2 = self.getS(self.C.transpose((2,1,0)))
-        #     r2, r3 = self.getR23(self.B.transpose((2,1,0)),
-        #                          self.A.transpose((2,0,1)),
-        #                          self.C.transpose((2,1,0)))
-        #     q = self.getQ(s1, s2, r2, r3)
-        #     if (self.D.shape[1]**2 < self.dbond):
-        #         V = getU(q, self.D.shape[1]**2)
-        #         # V = np.eye(V.shape[0])
-        #     else:
-        #         V = getU(q, self.dbond)
-        #         # V = np.eye(V.shape[0])
-        # else:
-        #     s1 = self.getS(self.A)
-        #     s2 = self.getS(self.B)
-        #     r2, r3 = self.getR23(self.C, self.D, self.B)
-        #     q = self.getQ(s1, s2, r2, r3)
-        #     if (self.A.shape[0]**2 < self.dbond):
-        #         U = getU(q, self.A.shape[0]**2)
-        #         # U = np.eye(U.shape[0])
-        #     else:
-        #         U = getU(q, self.dbond)
-        #         # U = np.eye(U.shape[0])
-        #     V = U
-        # if self.imp:
-        #     self.make_new_impure_triads(U, V)
-        # if self.nnimp:
-        #     self.contract_nn_triads(U, V)
-        #     self.nnimp = False
-        #     self.imp = True
-        # self.make_new_triads(U, V)        
 
     def makeD(self, U, V):
         """
@@ -1499,26 +1465,39 @@ class ThreeDimensionalTriadNetwork:
         gs = G.shape
 
         self.Bimp, self.Cimp, alpha = split(G.reshape((gs[0]*gs[1], gs[2]*gs[3])),
-                                      cut=self.dbond)
+                                            cut=self.dbond)
         self.Bimp = self.Bimp.reshape((gs[0], gs[1], alpha)) # check ordering
         self.Cimp = self.Cimp.reshape((alpha, gs[2], gs[3])) # check ordering
 
-
-        
-    def make_new_triads(self, U, V):        
-        G = self.makeD(U, V)
-        G = self.makeA(G, U, V)
+    def make_new_triads(self, left, right, front, back):        
+        G = self.makeD(right, back)
+        G = self.makeA(G, left, front)
         self.makeBC(G)
 
-    def make_new_impure_triads(self, U, V):
-        G = self.makeDimp(U, V)
-        G = self.makeAimp(G, U, V)
+    def make_new_impure_triads(self, left, right, front, back):
+        G = self.makeDimp(right, back)
+        G = self.makeAimp(G, left, front)
         self.makeBCimp(G)
 
-    def contract_nn_triads(self, U, V):
-        G = self.makeDnnimp(U, V)
-        G = self.makeAnnimp(G, U, V)
+    def contract_nn_triads(self, left, right, front, back):
+        G = self.makeDnnimp(right, back)
+        G = self.makeAnnimp(G, left, front)
         self.makeBCimp(G)
+        
+    # def make_new_triads(self, U, V):        
+    #     G = self.makeD(U, V)
+    #     G = self.makeA(G, U, V)
+    #     self.makeBC(G)
+
+    # def make_new_impure_triads(self, U, V):
+    #     G = self.makeDimp(U, V)
+    #     G = self.makeAimp(G, U, V)
+    #     self.makeBCimp(G)
+
+    # def contract_nn_triads(self, U, V):
+    #     G = self.makeDnnimp(U, V)
+    #     G = self.makeAnnimp(G, U, V)
+    #     self.makeBCimp(G)
         
         
     def get_lognorms(self,):
