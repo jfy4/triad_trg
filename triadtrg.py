@@ -1168,9 +1168,13 @@ class ThreeDimensionalTriadNetwork:
         q = self.make_q_from_triads(A, B, C, D)
         assert np.allclose(q, q.conjugate().transpose())
         evals_left, Uleft = np.linalg.eigh(q)
+        idx = np.abs(evals_left).argsort()[::-1]
+        # print("largest =", np.max(e))
+        # sys.stdout.flush()
+        return Uleft[:, idx]
         # Udag = Uleft.dot(np.diag(1/np.sqrt(np.abs(evals_left))))
         # U = Uleft.dot(np.diag(np.sqrt(np.abs(evals_left))))
-        return Uleft
+        # return Uleft
 
     
 
