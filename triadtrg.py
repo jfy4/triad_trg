@@ -1189,26 +1189,32 @@ class ThreeDimensionalTriadNetwork:
         resleft, Uleft = self.get_UUdag(self.A, self.B, self.C, self.D)
         # make the right isometry
         resright, Uright = self.get_UUdag(self.D.transpose((2,1,0)),
-                                self.C.transpose((2,1,0)),
-                                self.B.transpose((2,1,0)),
-                                self.A.transpose((2,1,0)))
+                                          self.C.transpose((2,1,0)),
+                                          self.B.transpose((2,1,0)),
+                                          self.A.transpose((2,1,0)))
         # center = W.transpose().dot(U)
         # u, vdag, alpha = split(center)
         alpha = Uleft.shape[1]
-        if alpha < self.dbond:
+        if alpha <= self.dbond:
             left_isometry = Uleft
+            right_isometry = Uleft
         else:
-            left_isometry = Uleft[:, :self.dbond]
+            if resleft <= resright:
+                left_isometry = Uleft[:, :self.dbond]
+                right_isometry = Uleft[:, :self.dbond]
+            else:
+                left_isometry = Uright[:, :self.dbond]
+                right_isometry = Uright[:, :self.dbond]
         # left_isometry = vdag[:self.dbond, :].dot(Udag)
-        alpha = Uright.shape[1]
-        if alpha < self.dbond:
-            right_isometry = Uright
-        else:
-            right_isometry = Uright[:, :self.dbond]
+        # alpha = Uright.shape[1]
+        # if alpha < self.dbond:
+        #     right_isometry = Uright
+        # else:
+        #     right_isometry = Uright[:, :self.dbond]
         # done with left and right
         # starting front and back
         # make the back isometry
-        Uback = self.get_UUdag(self.D.transpose((1,2,0)),
+        resback, Uback = self.get_UUdag(self.D.transpose((1,2,0)),
                                self.C.transpose((2,1,0)),
                                self.B.transpose((2,1,0)),
                                self.A.transpose((2,0,1)))        
@@ -1221,22 +1227,29 @@ class ThreeDimensionalTriadNetwork:
         #                         self.B,
         #                         self.C,
         #                         self.D)
-        Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
+        resfront, Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
                                 self.B,
                                 self.C,
                                 self.D.transpose((0,2,1)))
         # center = W.transpose().dot(U)
         # u, vdag, alpha = split(center)
         alpha = Uback.shape[1]
-        if alpha < self.dbond:
+        if alpha <= self.dbond:
             back_isometry = Uback
-        else:
-            back_isometry = Uback[:, :self.dbond]
-        alpha = Ufront.shape[1]    
-        if alpha < self.dbond:
             front_isometry = Uback
         else:
-            front_isometry = Uback[:, :self.dbond]
+            if resback <= resfront:
+                back_isometry = Uback[:, :self.dbond]
+                front_isometry = Uback[:, :self.dbond]
+            else:
+                back_isometry = Ufront[:, :self.dbond]
+                front_isometry = Ufront[:, :self.dbond]
+                
+        # alpha = Ufront.shape[1]    
+        # if alpha < self.dbond:
+        #     front_isometry = Uback
+        # else:
+        #     front_isometry = Uback[:, :self.dbond]
         if self.imp:
             self.make_new_impure_triads(left_isometry, right_isometry,
                                         front_isometry, back_isometry)
