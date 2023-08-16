@@ -1169,9 +1169,10 @@ class ThreeDimensionalTriadNetwork:
         assert np.allclose(q, q.conjugate().transpose())
         evals_left, Uleft = np.linalg.eigh(q)
         idx = np.abs(evals_left).argsort()[::-1]
+        res = np.sum(evals_left[idx][self.dbond:])
         # print("largest =", np.max(e))
         # sys.stdout.flush()
-        return Uleft[:, idx]
+        return (res, Uleft[:, idx])
         # Udag = Uleft.dot(np.diag(1/np.sqrt(np.abs(evals_left))))
         # U = Uleft.dot(np.diag(np.sqrt(np.abs(evals_left))))
         # return Uleft
@@ -1185,9 +1186,9 @@ class ThreeDimensionalTriadNetwork:
 
         """
         # make the left isometry
-        Uleft = self.get_UUdag(self.A, self.B, self.C, self.D)
+        resleft, Uleft = self.get_UUdag(self.A, self.B, self.C, self.D)
         # make the right isometry
-        Uright = self.get_UUdag(self.D.transpose((2,1,0)),
+        resright, Uright = self.get_UUdag(self.D.transpose((2,1,0)),
                                 self.C.transpose((2,1,0)),
                                 self.B.transpose((2,1,0)),
                                 self.A.transpose((2,1,0)))
