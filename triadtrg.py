@@ -112,7 +112,8 @@ def split(matrix, cut=None, split='both'):
         for i in range(K):
             sp[i, i] = s[i]
         # left, s, right = randomized_svd(matrix, n_components=cut) 
-        alpha = min([len(s[s > 1e-14]), cut])
+        # alpha = min([len(s[s > 1e-14]), cut])
+        alpha = cut
         if split == 'both':
             left = np.dot(left, np.sqrt(sp)[:, :alpha])
             right = np.dot(np.sqrt(sp)[:alpha, :], right)
@@ -140,23 +141,22 @@ def split(matrix, cut=None, split='both'):
         sp = np.zeros((M, N))
         for i in range(K):
             sp[i, i] = s[i]
+        # alpha = len(s[s > 1e-14])
         # left, s, right = np.linalg.svd(matrix, full_matrices=True)
         if split == 'both':
-            alpha = len(s[s > 1e-14])
-            left = np.dot(left, np.sqrt(sp)[:, :alpha])
-            right = np.dot(np.sqrt(sp)[:alpha, :], right)
+            # alpha = len(s[s > 1e-14])
+            left = np.dot(left, np.sqrt(sp))
+            right = np.dot(np.sqrt(sp), right)
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         elif split == 'left':
-            alpha = len(s[s > 1e-14])
-            left = np.dot(left, sp[:, :alpha])
-            right = right[:cut, :]
+            left = np.dot(left, sp)
+            right = right
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         elif split == 'right':
-            alpha = len(s[s > 1e-14])
-            left = left[:, :cut]
-            right = np.dot(sp[:alpha, :], right)
+            left = left
+            right = np.dot(sp, right)
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         else:
