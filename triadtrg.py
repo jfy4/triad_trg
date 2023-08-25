@@ -1434,7 +1434,7 @@ class ThreeDimensionalTriadNetwork:
         self.Aimp, G, alpha = split(one, cut=self.dbond, split='right')
         self.Aimp = self.Aimp.reshape((bs[1], us[2], alpha)) # check ordering
         # print(self.A.shape)
-        return G.reshape((alpha, vs[2], gs[2], gs[3]))
+        return G.reshape((alpha, vs[2], gs[2], gs[3])).transpose((0,2,1,3))
 
 
     def makeAnnimp(self, G, U, V):
