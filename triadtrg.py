@@ -104,7 +104,7 @@ def split(matrix, cut=None, split='both'):
     """
     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
     if (cut is not None):
-        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        left, s, right = np.linalg.svd(matrix, full_matrices=True)
         # left, s, right = randomized_svd(matrix, n_components=cut) 
         alpha = min([len(s[s > 1e-14]), cut])
         if split == 'both':
@@ -127,7 +127,7 @@ def split(matrix, cut=None, split='both'):
         else:
             raise ValueError("split must be a valid option.")
     else:
-        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        left, s, right = np.linalg.svd(matrix, full_matrices=True)
         if split == 'both':
             alpha = len(s[s > 1e-14])
             left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
@@ -1292,8 +1292,7 @@ class ThreeDimensionalTriadNetwork:
 
         one = np.tensordot(two, one, axes=([2,3], [0,1]))
         one = one.reshape((bs[0]*cs[0]*vs[2], us[2]*cs[1]))
-        # G, self.D, alpha = split(one, cut=self.dbond, split='left')
-        G, self.D, alpha = split(one, split='left')
+        G, self.D, alpha = split(one, cut=self.dbond, split='left')
         self.D = self.D.reshape((alpha, us[2], cs[1]))
         # print(self.D.shape)
         return G.reshape((bs[0], cs[0], vs[2], alpha))
@@ -1399,8 +1398,7 @@ class ThreeDimensionalTriadNetwork:
         one = np.tensordot(self.A, G, axes=([2,4], [0,1]))
         one = one.reshape((bs[1]*us[2], vs[2]*gs[2]*gs[3]))
 
-        # self.A, G, alpha = split(one, cut=self.dbond, split='right')
-        self.A, G, alpha = split(one, split='right')
+        self.A, G, alpha = split(one, cut=self.dbond, split='right')
         self.A = self.A.reshape((bs[1], us[2], alpha)) # check ordering
         # print(self.A.shape)
         return G.reshape((alpha, vs[2], gs[2], gs[3]))
@@ -1477,9 +1475,8 @@ class ThreeDimensionalTriadNetwork:
     def makeBC(self, G):
         gs = G.shape
 
-        # self.B, self.C, alpha = split(G.reshape((gs[0]*gs[1], gs[2]*gs[3])),
-        #                               cut=self.dbond)
-        self.B, self.C, alpha = split(G.reshape((gs[0]*gs[1], gs[2]*gs[3])))
+        self.B, self.C, alpha = split(G.reshape((gs[0]*gs[1], gs[2]*gs[3])),
+                                      cut=self.dbond)
         self.B = self.B.reshape((gs[0], gs[1], alpha)) # check ordering
         self.C = self.C.reshape((alpha, gs[2], gs[3])) # check ordering
 
