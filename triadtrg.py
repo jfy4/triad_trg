@@ -105,45 +105,58 @@ def split(matrix, cut=None, split='both'):
     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
     if (cut is not None):
         left, s, right = np.linalg.svd(matrix, full_matrices=True)
+        K = len(s)
+        M = left.shape[1]
+        N = right.shape[0]
+        sp = np.zeros((M, N))
+        for i in range(K):
+            sp[i, i] = s[i]
         # left, s, right = randomized_svd(matrix, n_components=cut) 
         alpha = min([len(s[s > 1e-14]), cut])
         if split == 'both':
-            left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
-            right = np.dot(np.diag(np.sqrt(s))[:alpha, :], right)
+            left = np.dot(left, np.sqrt(sp)[:, :alpha])
+            right = np.dot(np.sqrt(sp)[:alpha, :], right)
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         elif split == 'left':
             # alpha = min([len(s[s > 1e-14]), cut])
-            left = np.dot(left, np.diag(s)[:, :alpha])
+            left = np.dot(left, sp[:, :alpha])
             right = right[:alpha, :]
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         elif split == 'right':
             # alpha = min([len(s[s > 1e-14]), cut])
             left = left[:, :alpha]
-            right = np.dot(np.diag(s)[:alpha, :], right)
+            right = np.dot(sp[:alpha, :], right)
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         else:
             raise ValueError("split must be a valid option.")
     else:
         left, s, right = np.linalg.svd(matrix, full_matrices=True)
+        K = len(s)
+        M = left.shape[1]
+        N = right.shape[0]
+        sp = np.zeros((M, N))
+        for i in range(K):
+            sp[i, i] = s[i]
+        # left, s, right = np.linalg.svd(matrix, full_matrices=True)
         if split == 'both':
             alpha = len(s[s > 1e-14])
-            left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
-            right = np.dot(np.diag(np.sqrt(s))[:alpha, :], right)
+            left = np.dot(left, np.sqrt(sp)[:, :alpha])
+            right = np.dot(np.sqrt(sp)[:alpha, :], right)
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         elif split == 'left':
             alpha = len(s[s > 1e-14])
-            left = np.dot(left, np.diag(s)[:, :alpha])
+            left = np.dot(left, sp[:, :alpha])
             right = right[:alpha, :]
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         elif split == 'right':
             alpha = len(s[s > 1e-14])
             left = left[:, :alpha]
-            right = np.dot(np.diag(s)[:alpha, :], right)
+            right = np.dot(sp[:alpha, :], right)
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         else:
