@@ -1292,7 +1292,8 @@ class ThreeDimensionalTriadNetwork:
 
         one = np.tensordot(two, one, axes=([2,3], [0,1]))
         one = one.reshape((bs[0]*cs[0]*vs[2], us[2]*cs[1]))
-        G, self.D, alpha = split(one, cut=self.dbond, split='left')
+        # G, self.D, alpha = split(one, cut=self.dbond, split='left')
+        G, self.D, alpha = split(one, split='left')
         self.D = self.D.reshape((alpha, us[2], cs[1]))
         # print(self.D.shape)
         return G.reshape((bs[0], cs[0], vs[2], alpha))
@@ -1378,7 +1379,7 @@ class ThreeDimensionalTriadNetwork:
         """
         us = U.shape
         us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
-        As = self.A.shape
+        # As = self.A.shape
         bs = self.B.shape
         gs = G.shape
         vs = V.shape
@@ -1398,7 +1399,8 @@ class ThreeDimensionalTriadNetwork:
         one = np.tensordot(self.A, G, axes=([2,4], [0,1]))
         one = one.reshape((bs[1]*us[2], vs[2]*gs[2]*gs[3]))
 
-        self.A, G, alpha = split(one, cut=self.dbond, split='right')
+        # self.A, G, alpha = split(one, cut=self.dbond, split='right')
+        self.A, G, alpha = split(one, split='right')
         self.A = self.A.reshape((bs[1], us[2], alpha)) # check ordering
         # print(self.A.shape)
         return G.reshape((alpha, vs[2], gs[2], gs[3]))
@@ -1475,8 +1477,9 @@ class ThreeDimensionalTriadNetwork:
     def makeBC(self, G):
         gs = G.shape
 
-        self.B, self.C, alpha = split(G.reshape((gs[0]*gs[1], gs[2]*gs[3])),
-                                      cut=self.dbond)
+        # self.B, self.C, alpha = split(G.reshape((gs[0]*gs[1], gs[2]*gs[3])),
+        #                               cut=self.dbond)
+        self.B, self.C, alpha = split(G.reshape((gs[0]*gs[1], gs[2]*gs[3])))
         self.B = self.B.reshape((gs[0], gs[1], alpha)) # check ordering
         self.C = self.C.reshape((alpha, gs[2], gs[3])) # check ordering
 
