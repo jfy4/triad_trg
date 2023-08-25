@@ -118,19 +118,19 @@ def split(matrix, cut=None, split='both'):
             left = np.dot(left, np.sqrt(sp)[:, :alpha])
             right = np.dot(np.sqrt(sp)[:alpha, :], right)
             # assert np.allclose(left.dot(right), matrix)
-            return (left, right, alpha)
+            return (left, right, left.shape[1])
         elif split == 'left':
             # alpha = min([len(s[s > 1e-14]), cut])
             left = np.dot(left, sp[:, :alpha])
             right = right[:cut, :]
             # assert np.allclose(left.dot(right), matrix)
-            return (left, right, alpha)
+            return (left, right, left.shape[1])
         elif split == 'right':
             # alpha = min([len(s[s > 1e-14]), cut])
             left = left[:, :cut]
             right = np.dot(sp[:alpha, :], right)
             # assert np.allclose(left.dot(right), matrix)
-            return (left, right, alpha)
+            return (left, right, left.shape[1])
         else:
             raise ValueError("split must be a valid option.")
     else:
@@ -148,17 +148,17 @@ def split(matrix, cut=None, split='both'):
             left = np.dot(left, np.sqrt(sp))
             right = np.dot(np.sqrt(sp), right)
             # assert np.allclose(left.dot(right), matrix)
-            return (left, right, alpha)
+            return (left, right, left.shape[1])
         elif split == 'left':
             left = np.dot(left, sp)
             right = right
             # assert np.allclose(left.dot(right), matrix)
-            return (left, right, alpha)
+            return (left, right, left.shape[1])
         elif split == 'right':
             left = left
             right = np.dot(sp, right)
             # assert np.allclose(left.dot(right), matrix)
-            return (left, right, alpha)
+            return (left, right, left.shape[1])
         else:
             raise ValueError("split must be a valid option.")
 
