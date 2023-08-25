@@ -121,12 +121,12 @@ def split(matrix, cut=None, split='both'):
         elif split == 'left':
             # alpha = min([len(s[s > 1e-14]), cut])
             left = np.dot(left, sp[:, :alpha])
-            right = right[:alpha, :]
+            right = right[:cut, :]
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         elif split == 'right':
             # alpha = min([len(s[s > 1e-14]), cut])
-            left = left[:, :alpha]
+            left = left[:, :cut]
             right = np.dot(sp[:alpha, :], right)
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
@@ -150,12 +150,12 @@ def split(matrix, cut=None, split='both'):
         elif split == 'left':
             alpha = len(s[s > 1e-14])
             left = np.dot(left, sp[:, :alpha])
-            right = right[:alpha, :]
+            right = right[:cut, :]
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
         elif split == 'right':
             alpha = len(s[s > 1e-14])
-            left = left[:, :alpha]
+            left = left[:, :cut]
             right = np.dot(sp[:alpha, :], right)
             # assert np.allclose(left.dot(right), matrix)
             return (left, right, alpha)
