@@ -1138,8 +1138,7 @@ class ThreeDimensionalTriadNetwork:
         # one =  one.reshape((cs[0], cs[1], cs[0], cs[1])).transpose((0, 2, 1, 3))
         return (r2, r3)
 
-
-    def getQ(self, s1, s2, r2, r3):
+    def getQ_left_front(self, s1, s2, r2, r3):
         ss = s1.shape
         x = int(np.rint(np.sqrt(ss[0])))
         temp = s1.dot(s2)
@@ -1147,26 +1146,53 @@ class ThreeDimensionalTriadNetwork:
         temp = temp.dot(r3.transpose())
         temp = temp.dot(s1.transpose())
         temp = temp.reshape((x, x, x, x)).transpose((2, 0, 3, 1))
+        # temp = temp.reshape((x, x, x, x)).transpose((0, 2, 1, 3))
         return temp.reshape((x**2, x**2))
 
-    def make_q_from_triads(self, A, B, C, D):
-        """
-        A generic make Q method for any four triads.
+    def getQ_right_back(self, s1, s2, r2, r3):
+        ss = s1.shape
+        x = int(np.rint(np.sqrt(ss[0])))
+        temp = s1.dot(s2)
+        temp = temp.dot(r2)
+        temp = temp.dot(r3.transpose())
+        temp = temp.dot(s1.transpose())
+        # temp = temp.reshape((x, x, x, x)).transpose((2, 0, 3, 1))
+        temp = temp.reshape((x, x, x, x)).transpose((0, 2, 1, 3))
+        return temp.reshape((x**2, x**2))
 
-        """
-        s1 = self.getS(A)
-        s2 = self.getS(B)
-        r2, r3 = self.getR23(C, D, B)
-        q = self.getQ(s1, s2, r2, r3)
-        return q
+    # def make_q_from_triads(self, A, B, C, D, which):
+    #     """
+    #     A generic make Q method for any four triads.
 
-    def get_UUdag(self, A, B, C, D):
+    #     """
+    #     s1 = self.getS(A)
+    #     s2 = self.getS(B)
+    #     r2, r3 = self.getR23(C, D, B)
+    #     if which == 'lf':
+    #         q = self.getQ_left_front(s1, s2, r2, r3)
+    #     elif which == 'rb':
+    #         q = self.getQ_right_back(s1, s2, r2, r3)
+    #     else:
+    #         raise ValueError("must be 'lf' or 'rb'")
+    #     return q
+
+
+    def get_UUdag(self, A, B, C, D, which):
         """
         From the Q matrix this gets the isometry and the
         singular values from the eigenvalues.
 
         """
-        q = self.make_q_from_triads(A, B, C, D)
+        # q = self.make_q_from_triads(A, B, C, D)
+        s1 = self.getS(A)
+        s2 = self.getS(B)
+        r2, r3 = self.getR23(C, D, B)
+        if which == 'lf':
+            q = self.getQ_left_front(s1, s2, r2, r3)
+        elif which == 'rb':
+            q = self.getQ_right_back(s1, s2, r2, r3)
+        else:
+            raise ValueError("must be 'lf' or 'rb'")
         assert np.allclose(q, q.conjugate().transpose())
         evals_left, Uleft = np.linalg.eigh(q)
         idx = np.abs(evals_left).argsort()[::-1]
@@ -1187,12 +1213,12 @@ class ThreeDimensionalTriadNetwork:
 
         """
         # make the left isometry
-        resleft, Uleft = self.get_UUdag(self.A, self.B, self.C, self.D)
+        resleft, Uleft = self.get_UUdag(self.A, self.B, self.C, self.D, which='lf')
         # make the right isometry
         resright, Uright = self.get_UUdag(self.D.transpose((2,1,0)),
                                           self.C.transpose((2,1,0)),
                                           self.B.transpose((2,1,0)),
-                                          self.A.transpose((2,1,0)))
+                                          self.A.transpose((2,1,0)), which='rb')
         # center = W.transpose().dot(U)
         # u, vdag, alpha = split(center)
         alpha = Uleft.shape[1]
@@ -1218,7 +1244,7 @@ class ThreeDimensionalTriadNetwork:
         resback, Uback = self.get_UUdag(self.D.transpose((1,2,0)),
                                         self.C.transpose((2,1,0)),
                                         self.B.transpose((2,1,0)),
-                                        self.A.transpose((2,1,0)))        
+                                        self.A.transpose((2,1,0)), which='rb')        
         # Uback = self.get_UUdag(self.D.transpose((1,2,0)),
         #                        self.C.transpose((2,1,0)),
         #                        self.B.transpose((2,1,0)),
@@ -1231,7 +1257,7 @@ class ThreeDimensionalTriadNetwork:
         resfront, Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
                                           self.B,
                                           self.C,
-                                          self.D)
+                                          self.D, which='lf')
         # center = W.transpose().dot(U)
         # u, vdag, alpha = split(center)
         alpha = Uback.shape[1]
