@@ -779,61 +779,60 @@ class ThreeDimensionalTriadNetwork:
                 return self.get_lognorms()
         # print("Done.")
 
-
     def normalize(self,):
         """normalize each tensor, and return the total."""
-        # normA = np.linalg.norm(self.A)
-        # normB = np.linalg.norm(self.B)
-        # normC = np.linalg.norm(self.C)
-        # normD = np.linalg.norm(self.D)
+        normA = np.linalg.norm(self.A)
+        normB = np.linalg.norm(self.B)
+        normC = np.linalg.norm(self.C)
+        normD = np.linalg.norm(self.D)
 
-        # self.A /= normA
-        # self.B /= normB
-        # self.C /= normC
-        # self.D /= normD
-        # print("normalized the pure triads.")
-        # if self.nnimp:
-        #     self.Aimp1 /= normA
-        #     self.Bimp1 /= normB
-        #     self.Cimp1 /= normC
-        #     self.Dimp1 /= normD
-        #     self.Aimp2 /= normA
-        #     self.Bimp2 /= normB
-        #     self.Cimp2 /= normC
-        #     self.Dimp2 /= normD
-        #     print("normalized the nn impure triads.")
-        # if self.imp:
-        #     self.Aimp /= normA
-        #     self.Bimp /= normB
-        #     self.Cimp /= normC
-        #     self.Dimp /= normD
-        #     print("normalized the impure triads.")
-        # self.lognorms.append(np.log(normA*normB*normC*normD))            
-            
-        norm = self.norm()
-        print("norm = ", norm)
-        self.A /= norm**0.25
-        self.B /= norm**0.25
-        self.C /= norm**0.25
-        self.D /= norm**0.25
+        self.A /= normA
+        self.B /= normB
+        self.C /= normC
+        self.D /= normD
         print("normalized the pure triads.")
         if self.nnimp:
-            self.Aimp1 /= norm**0.25
-            self.Bimp1 /= norm**0.25
-            self.Cimp1 /= norm**0.25
-            self.Dimp1 /= norm**0.25
-            self.Aimp2 /= norm**0.25
-            self.Bimp2 /= norm**0.25
-            self.Cimp2 /= norm**0.25
-            self.Dimp2 /= norm**0.25
+            self.Aimp1 /= normA
+            self.Bimp1 /= normB
+            self.Cimp1 /= normC
+            self.Dimp1 /= normD
+            self.Aimp2 /= normA
+            self.Bimp2 /= normB
+            self.Cimp2 /= normC
+            self.Dimp2 /= normD
             print("normalized the nn impure triads.")
         if self.imp:
-            self.Aimp /= norm**0.25
-            self.Bimp /= norm**0.25
-            self.Cimp /= norm**0.25
-            self.Dimp /= norm**0.25
+            self.Aimp /= normA
+            self.Bimp /= normB
+            self.Cimp /= normC
+            self.Dimp /= normD
             print("normalized the impure triads.")
-        self.lognorms.append(np.log(norm))
+        self.lognorms.append(np.log(normA*normB*normC*normD))            
+            
+        # norm = self.norm()
+        # print("norm = ", norm)
+        # self.A /= norm**0.25
+        # self.B /= norm**0.25
+        # self.C /= norm**0.25
+        # self.D /= norm**0.25
+        # print("normalized the pure triads.")
+        # if self.nnimp:
+        #     self.Aimp1 /= norm**0.25
+        #     self.Bimp1 /= norm**0.25
+        #     self.Cimp1 /= norm**0.25
+        #     self.Dimp1 /= norm**0.25
+        #     self.Aimp2 /= norm**0.25
+        #     self.Bimp2 /= norm**0.25
+        #     self.Cimp2 /= norm**0.25
+        #     self.Dimp2 /= norm**0.25
+        #     print("normalized the nn impure triads.")
+        # if self.imp:
+        #     self.Aimp /= norm**0.25
+        #     self.Bimp /= norm**0.25
+        #     self.Cimp /= norm**0.25
+        #     self.Dimp /= norm**0.25
+        #     print("normalized the impure triads.")
+        # self.lognorms.append(np.log(norm))
 
     def reconstruct(self,):
         """
@@ -1146,7 +1145,6 @@ class ThreeDimensionalTriadNetwork:
         temp = temp.dot(r3.transpose())
         temp = temp.dot(s1.transpose())
         temp = temp.reshape((x, x, x, x)).transpose((2, 0, 3, 1))
-        # temp = temp.reshape((x, x, x, x)).transpose((0, 2, 1, 3))
         return temp.reshape((x**2, x**2))
 
     def getQ_right_back(self, s1, s2, r2, r3):
@@ -1156,7 +1154,6 @@ class ThreeDimensionalTriadNetwork:
         temp = temp.dot(r2)
         temp = temp.dot(r3.transpose())
         temp = temp.dot(s1.transpose())
-        # temp = temp.reshape((x, x, x, x)).transpose((2, 0, 3, 1))
         temp = temp.reshape((x, x, x, x)).transpose((0, 2, 1, 3))
         return temp.reshape((x**2, x**2))
 
@@ -1219,8 +1216,6 @@ class ThreeDimensionalTriadNetwork:
                                           self.C.transpose((2,1,0)),
                                           self.B.transpose((2,1,0)),
                                           self.A.transpose((2,1,0)), which='rb')
-        # center = W.transpose().dot(U)
-        # u, vdag, alpha = split(center)
         alpha = Uleft.shape[1]
         if alpha <= self.dbond:
             left_isometry = Uleft
@@ -1232,12 +1227,6 @@ class ThreeDimensionalTriadNetwork:
             else:
                 left_isometry = Uright[:, :self.dbond]
                 right_isometry = Uright[:, :self.dbond]
-        # left_isometry = vdag[:self.dbond, :].dot(Udag)
-        # alpha = Uright.shape[1]
-        # if alpha < self.dbond:
-        #     right_isometry = Uright
-        # else:
-        #     right_isometry = Uright[:, :self.dbond]
         # done with left and right
         # starting front and back
         # make the back isometry
@@ -1245,21 +1234,11 @@ class ThreeDimensionalTriadNetwork:
                                         self.C.transpose((2,1,0)),
                                         self.B.transpose((2,1,0)),
                                         self.A.transpose((2,1,0)), which='rb')        
-        # Uback = self.get_UUdag(self.D.transpose((1,2,0)),
-        #                        self.C.transpose((2,1,0)),
-        #                        self.B.transpose((2,1,0)),
-        #                        self.A.transpose((2,1,0)))        
         # make the front isometry
-        # Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
-        #                         self.B,
-        #                         self.C,
-        #                         self.D)
         resfront, Ufront = self.get_UUdag(self.A.transpose((1,0,2)),
                                           self.B,
                                           self.C,
                                           self.D, which='lf')
-        # center = W.transpose().dot(U)
-        # u, vdag, alpha = split(center)
         alpha = Uback.shape[1]
         if alpha <= self.dbond:
             back_isometry = Uback
@@ -1272,11 +1251,6 @@ class ThreeDimensionalTriadNetwork:
                 back_isometry = Ufront[:, :self.dbond]
                 front_isometry = Ufront[:, :self.dbond]
                 
-        # alpha = Ufront.shape[1]    
-        # if alpha < self.dbond:
-        #     front_isometry = Uback
-        # else:
-        #     front_isometry = Uback[:, :self.dbond]
         if self.imp:
             self.make_new_impure_triads(left_isometry, right_isometry,
                                         front_isometry, back_isometry)
@@ -1285,7 +1259,6 @@ class ThreeDimensionalTriadNetwork:
                                     front_isometry, back_isometry)
             self.nnimp = False
             self.imp = True
-        # self.make_new_triads(U, V)
         self.make_new_triads(left_isometry, right_isometry,
                              front_isometry, back_isometry)
 
@@ -1470,7 +1443,7 @@ class ThreeDimensionalTriadNetwork:
         """
         us = U.shape
         us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
-        As = self.A.shape
+        # As = self.A.shape
         bs = self.B.shape
         gs = G.shape
         vs = V.shape
@@ -1499,6 +1472,10 @@ class ThreeDimensionalTriadNetwork:
     
     
     def makeBC(self, G):
+        """
+        This takes the center G tensor and splits it into B and C.
+
+        """
         gs = G.shape
 
         self.B, self.C, alpha = split(G.reshape((gs[0]*gs[1], gs[2]*gs[3])),
