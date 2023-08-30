@@ -171,7 +171,7 @@ def bond_weight(matrix, k=0, cut=None):
         left, s, right = np.linalg.svd(matrix, full_matrices=False)
         # left, s, right = randomized_svd(matrix, n_components=cut) 
         alpha = min([len(s[s > 1e-14]), cut])
-        stil = np.sqrt(s**(-1-k))
+        stil = np.sqrt(s**(1-k))
         bw = np.diag((s[:alpha])**k)
         left = np.dot(left, np.diag(stil)[:, :alpha])
         right = np.dot(np.diag(stil)[:alpha, :], right)
@@ -179,7 +179,7 @@ def bond_weight(matrix, k=0, cut=None):
     else:
         left, s, right = np.linalg.svd(matrix, full_matrices=False)
         alpha = len(s[s > 1e-14])
-        stil = np.sqrt(s**(-1-k))
+        stil = np.sqrt(s**(1-k))
         bw = np.diag((s[:alpha])**k)
         left = np.dot(left, np.diag(stil)[:, :alpha])
         right = np.dot(np.diag(stil)[:alpha, :], right)
@@ -796,7 +796,9 @@ class ThreeDimensionalTriadNetwork:
             self.D = triads[3]
             # bond weight order is [z, y, x]
             # it rolls to [y, x, z]
-            self.bond_weights = [np.eye(self.B.shape[1])]*3
+            self.bond_weights = [np.eye(self.B.shape[1]),
+                                 np.eye(self.A.shape[1]),
+                                 np.eye(self.A.shape[0])]
         print("Bond dimension =", self.dbond)
 
     def coarse_grain(self, normalize=True, all_vols=False, hyp_k=0):
@@ -810,6 +812,7 @@ class ThreeDimensionalTriadNetwork:
             self.Xlist.append(X)
             print("X1 = ", X)
             self.update_triads()
+            print(self.A.shape, self.B.shape, self.C.shape, self.D.shape)
             if normalize:
                 self.normalize()
         if all_vols:
@@ -1161,10 +1164,12 @@ class ThreeDimensionalTriadNetwork:
         two = np.tensordot(C, one, axes=([2], [0]))
         # two = np.einsum('ika, jla', two, C)
         two = np.tensordot(two, C.conjugate(), axes=([2], [2])).transpose((0,2,1,3))
+        one = np.einsum('ijaa', two)
+        two = np.einsum('ijab, ka, lb', two, self.bond_weights[0],
+                        self.bond_weights[0])
         r2 = two.reshape((cs[0]**2, cs[1]**2))
         bs = B.shape
         # tws = two.shape
-        one = np.einsum('ijaa', two)
         # two = np.einsum('ija, ak', B, one)
         two = np.tensordot(B, one, axes=([2], [0]))
         # two = np.einsum('ika, jla', two, B)
@@ -1290,16 +1295,21 @@ class ThreeDimensionalTriadNetwork:
 
         """
         # make the left isometry
-        U, Udag = self.get_UUdag(self.A, self.B, self.C, self.D, which='lf')
+        A = np.einsum('abk, ia, jb', self.A, np.sqrt(self.bond_weights[2]),
+                      np.sqrt(self.bond_weights[1]))
+        D = np.einsum('iab, ja, kb', self.D, np.sqrt(self.bond_weights[1]),
+                      np.sqrt(self.bond_weights[2]))
+        U, Udag = self.get_UUdag(A, self.B, self.C, D, which='lf')
         # make the right isometry
-        W, Wdag = self.get_UUdag(self.D.transpose((2,1,0)),
+        W, Wdag = self.get_UUdag(D.transpose((2,1,0)),
                                  self.C.transpose((2,1,0)),
                                  self.B.transpose((2,1,0)),
-                                 self.A.transpose((2,1,0)), which='rb')
+                                 A.transpose((2,1,0)), which='rb')
         center = W.conjugate().transpose().dot(U)
         u, vdag, bwlr = bond_weight(center, k=self.hyp_k, cut=self.dbond)
         print("lr shape", bwlr.shape)
         left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
+        print("left iso shape", left_isometry.shape)
         # if alpha <= self.dbond:
         #     left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
         # else:
@@ -1312,15 +1322,15 @@ class ThreeDimensionalTriadNetwork:
         # done with left and right
         # starting front and back
         # make the back isometry
-        U, Udag = self.get_UUdag(self.D.transpose((1,2,0)),
+        U, Udag = self.get_UUdag(D.transpose((1,2,0)),
                                  self.C.transpose((2,1,0)),
                                  self.B.transpose((2,1,0)),
-                                 self.A.transpose((2,1,0)), which='rb')        
+                                 A.transpose((2,1,0)), which='rb')        
         # make the front isometry
-        W, Wdag = self.get_UUdag(self.A.transpose((1,0,2)),
+        W, Wdag = self.get_UUdag(A.transpose((1,0,2)),
                                  self.B,
                                  self.C,
-                                 self.D, which='lf')
+                                 D, which='lf')
         center = W.conjugate().transpose().dot(U)
         u, vdag, bwfb = bond_weight(center, k=self.hyp_k, cut=self.dbond)
         print("fb size", bwfb.shape)
