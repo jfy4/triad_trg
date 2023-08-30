@@ -1138,12 +1138,46 @@ class ThreeDimensionalTriadNetwork:
         return (r2, r3)
 
 
-    def getQ(self, s1, s2, r2, r3):
-        """
-        Computes the Q matrix from smaller S and R
-        matrices using triads.
+    # def getQ(self, s1, s2, r2, r3):
+    #     """
+    #     Computes the Q matrix from smaller S and R
+    #     matrices using triads.
 
-        """
+    #     """
+    #     ss = s1.shape
+    #     x = int(np.rint(np.sqrt(ss[0])))
+    #     temp = s1.dot(s2)
+    #     temp = temp.dot(r2)
+    #     temp = temp.dot(r3.transpose())
+    #     temp = temp.dot(s1.transpose())
+    #     temp = temp.reshape((x, x, x, x)).transpose((2, 0, 3, 1))
+    #     return temp.reshape((x**2, x**2))
+
+    # def make_q_from_triads(self, A, B, C, D):
+    #     """
+    #     A generic make Q method for any four triads.
+
+    #     """
+    #     s1 = self.getS(A)
+    #     s2 = self.getS(B)
+    #     r2, r3 = self.getR23(C, D, B)
+    #     q = self.getQ(s1, s2, r2, r3)
+    #     return q
+
+    # def get_UUdag(self, A, B, C, D):
+    #     """
+    #     From the Q matrix this gets the isometry and the
+    #     singular values from the eigenvalues.
+
+    #     """
+    #     q = self.make_q_from_triads(A, B, C, D)
+    #     assert np.allclose(q, q.conjugate().transpose())
+    #     evals_left, Uleft = np.linalg.eigh(q)
+    #     Udag = Uleft.dot(np.diag(1/np.sqrt(np.abs(evals_left))))
+    #     U = Uleft.dot(np.diag(np.sqrt(np.abs(evals_left))))
+    #     return (U, Udag)
+
+    def getQ_left_front(self, s1, s2, r2, r3):
         ss = s1.shape
         x = int(np.rint(np.sqrt(ss[0])))
         temp = s1.dot(s2)
@@ -1153,29 +1187,59 @@ class ThreeDimensionalTriadNetwork:
         temp = temp.reshape((x, x, x, x)).transpose((2, 0, 3, 1))
         return temp.reshape((x**2, x**2))
 
-    def make_q_from_triads(self, A, B, C, D):
-        """
-        A generic make Q method for any four triads.
+    def getQ_right_back(self, s1, s2, r2, r3):
+        ss = s1.shape
+        x = int(np.rint(np.sqrt(ss[0])))
+        temp = s1.dot(s2)
+        temp = temp.dot(r2)
+        temp = temp.dot(r3.transpose())
+        temp = temp.dot(s1.transpose())
+        temp = temp.reshape((x, x, x, x)).transpose((0, 2, 1, 3))
+        return temp.reshape((x**2, x**2))
 
-        """
-        s1 = self.getS(A)
-        s2 = self.getS(B)
-        r2, r3 = self.getR23(C, D, B)
-        q = self.getQ(s1, s2, r2, r3)
-        return q
+    # def make_q_from_triads(self, A, B, C, D, which):
+    #     """
+    #     A generic make Q method for any four triads.
 
-    def get_UUdag(self, A, B, C, D):
+    #     """
+    #     s1 = self.getS(A)
+    #     s2 = self.getS(B)
+    #     r2, r3 = self.getR23(C, D, B)
+    #     if which == 'lf':
+    #         q = self.getQ_left_front(s1, s2, r2, r3)
+    #     elif which == 'rb':
+    #         q = self.getQ_right_back(s1, s2, r2, r3)
+    #     else:
+    #         raise ValueError("must be 'lf' or 'rb'")
+    #     return q
+
+
+    def get_UUdag(self, A, B, C, D, which):
         """
         From the Q matrix this gets the isometry and the
         singular values from the eigenvalues.
 
         """
-        q = self.make_q_from_triads(A, B, C, D)
+        # q = self.make_q_from_triads(A, B, C, D)
+        s1 = self.getS(A)
+        s2 = self.getS(B)
+        r2, r3 = self.getR23(C, D, B)
+        if which == 'lf':
+            q = self.getQ_left_front(s1, s2, r2, r3)
+        elif which == 'rb':
+            q = self.getQ_right_back(s1, s2, r2, r3)
+        else:
+            raise ValueError("must be 'lf' or 'rb'")
         assert np.allclose(q, q.conjugate().transpose())
         evals_left, Uleft = np.linalg.eigh(q)
+        # idx = np.abs(evals_left).argsort()[::-1]
+        # res = np.sum(evals_left[idx][self.dbond:])
         Udag = Uleft.dot(np.diag(1/np.sqrt(np.abs(evals_left))))
         U = Uleft.dot(np.diag(np.sqrt(np.abs(evals_left))))
         return (U, Udag)
+        # print("largest =", np.max(e))
+        # sys.stdout.flush()
+        # return (res, Uleft[:, idx])
 
     def update_triads(self, getV=True):
         """
@@ -1184,20 +1248,20 @@ class ThreeDimensionalTriadNetwork:
 
         """
         # make the left isometry
-        U, Udag = self.get_UUdag(self.A, self.B, self.C, self.D)
+        U, Udag = self.get_UUdag(self.A, self.B, self.C, self.D, which='lf')
         # make the right isometry
         W, Wdag = self.get_UUdag(self.D.transpose((2,1,0)),
                                  self.C.transpose((2,1,0)),
                                  self.B.transpose((2,1,0)),
-                                 self.A.transpose((2,1,0)))
-        center = W.transpose().dot(U)
+                                 self.A.transpose((2,1,0)), which='rb')
+        center = W.conjugate().transpose().dot(U)
         u, vdag, alpha = split(center)
-        if alpha < self.dbond:
-            left_isometry = Udag.dot(vdag.transpose())
+        if alpha <= self.dbond:
+            left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
         else:
-            left_isometry = Udag.dot(vdag.transpose()[:,:self.dbond])
+            left_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
             # left_isometry = vdag[:self.dbond, :].dot(Udag)
-        if alpha < self.dbond:
+        if alpha <= self.dbond:
             right_isometry = Wdag.dot(u)
         else:
             right_isometry = Wdag.dot(u[:, :self.dbond])
@@ -1207,19 +1271,19 @@ class ThreeDimensionalTriadNetwork:
         U, Udag = self.get_UUdag(self.D.transpose((1,2,0)),
                                  self.C.transpose((2,1,0)),
                                  self.B.transpose((2,1,0)),
-                                 self.A.transpose((2,0,1)))        
+                                 self.A.transpose((2,1,0)), which='rb')        
         # make the front isometry
         W, Wdag = self.get_UUdag(self.A.transpose((1,0,2)),
                                  self.B,
                                  self.C,
-                                 self.D.transpose((0,2,1)))
-        center = W.transpose().dot(U)
+                                 self.D, which='lf')
+        center = W.conjugate().transpose().dot(U)
         u, vdag, alpha = split(center)
-        if alpha < self.dbond:
+        if alpha <= self.dbond:
             back_isometry = Udag.dot(vdag.transpose())
         else:
-            back_isometry = Udag.dot(vdag.transpose()[:,:self.dbond])
-        if alpha < self.dbond:
+            back_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
+        if alpha <= self.dbond:
             front_isometry = Wdag.dot(u)
         else:
             front_isometry = Wdag.dot(u[:, :self.dbond])
