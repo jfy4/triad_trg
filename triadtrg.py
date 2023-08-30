@@ -149,6 +149,42 @@ def split(matrix, cut=None, split='both'):
         else:
             raise ValueError("split must be a valid option.")
 
+def bond_weight(matrix, k=0, cut=None):
+    """
+    Splits a matrix in half using the SVD.
+    
+    Parameters
+    ----------
+    matrix : The matrix to be split.
+    k      : (optional, default zero) The hyperparameter value for the svd
+    cut    : (optional, default None) The number of states to keep on the internal 
+             index.
+
+    Returns
+    -------
+    left  : The left side of the split matrix.
+    right : The right side of the split matrix.
+    bw    : The bond weight matrix.
+
+    """
+    if (cut is not None):
+        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        # left, s, right = randomized_svd(matrix, n_components=cut) 
+        alpha = min([len(s[s > 1e-14]), cut])
+        stil = np.sqrt(s**(1-k))
+        bw = np.diag(s**k)
+        left = np.dot(left, np.diag(stil)[:, :alpha])
+        right = np.dot(np.diag(stil)[:alpha, :], right)
+        return (left, right, bw)
+    else:
+        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        alpha = len(s[s > 1e-14])
+        stil = np.sqrt(s**(1-k))
+        bw = np.diag(s**k)
+        left = np.dot(left, np.diag(stil)[:, :alpha])
+        right = np.dot(np.diag(stil)[:alpha, :], right)
+        return (left, right, bw)
+
 
 # def coarse_grain(tensor, nx, ny, nz, nt, dbond, triads=None):
 #     """The main coarse graining function."""
@@ -760,9 +796,10 @@ class ThreeDimensionalTriadNetwork:
             self.D = triads[3]
         print("Bond dimension =", self.dbond)
 
-    def coarse_grain(self, normalize=True, all_vols=False):
+    def coarse_grain(self, normalize=True, all_vols=False, hyp_k=0):
         """The main coarse graining function."""
         # print("Coarsening third dimension...")
+        self.hyp_k = hyp_k
         dirs = ['x', 'y', 'z']
         for d in dirs:
             print("doing " + d)
