@@ -1369,12 +1369,12 @@ class ThreeDimensionalTriadNetwork:
         # one = np.einsum('iqj, kql', self.D, V.reshape(vs))
         # print(self.D.shape, vs)
         V = V.reshape(vs)
-        V = np.einsum('abk, ia, jb', V, np.sqrt(self.bond_weights[1]),
-                      np.sqrt(self.bond_weights[1]))  # these could come from Q?
+        # V = np.einsum('abk, ia, jb', V, np.sqrt(self.bond_weights[1]),
+        #               np.sqrt(self.bond_weights[1]))  # these could come from Q?
         one = np.tensordot(self.D, V, axes=([1], [1]))
         U = U.reshape(us)
-        U = np.einsum('abk, ia, jb', U, np.sqrt(self.bond_weights[2]),
-                      np.sqrt(self.bond_weights[2]))
+        # U = np.einsum('abk, ia, jb', U, np.sqrt(self.bond_weights[2]),
+        #               np.sqrt(self.bond_weights[2]))
         # two = np.einsum('ijp, pkl', self.D, U.reshape(us))
         two = np.tensordot(self.D, U, axes=([2], [0]))
         # self.D = np.einsum('iqpl, jpqk', two, one).reshape((ds[0]**2, vs[2]*us[2]))
@@ -1482,13 +1482,13 @@ class ThreeDimensionalTriadNetwork:
         vs = (int(np.rint(np.sqrt(vs[0]))), int(np.rint(np.sqrt(vs[0]))), vs[1])
         
         V = V.reshape(vs)
-        V = np.einsum('abk, ia, jb', V, np.sqrt(self.bond_weights[1]),
-                      np.sqrt(self.bond_weights[1]))  # these could come from Q?
+        # V = np.einsum('abk, ia, jb', V, np.sqrt(self.bond_weights[1]),
+        #               np.sqrt(self.bond_weights[1]))  # these could come from Q?
         # one = np.einsum('iaj, kal', V.reshape(vs), self.A)
         one = np.tensordot(V.conjugate(), self.A, axes=([1], [1]))
         U = U.reshape(us)
-        U = np.einsum('abk, ia, jb', U, np.sqrt(self.bond_weights[2]),
-                      np.sqrt(self.bond_weights[2]))
+        # U = np.einsum('abk, ia, jb', U, np.sqrt(self.bond_weights[2]),
+        #               np.sqrt(self.bond_weights[2]))
         # two = np.einsum('aij, akl', U.reshape(us), self.A)
         two = np.tensordot(U.conjugate(), self.A, axes=([0], [0]))
         # self.A = np.einsum('piqk, qjpl', two, one).reshape((us[2]*vs[2], As[2]**2))
