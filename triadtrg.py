@@ -172,7 +172,7 @@ def bond_weight(matrix, k=0, cut=None):
         # left, s, right = randomized_svd(matrix, n_components=cut) 
         alpha = min([len(s[s > 1e-14]), cut])
         stil = np.sqrt(s**(1-k))
-        bw = np.diag(s**k)
+        bw = np.diag((s[:alpha])**k)
         left = np.dot(left, np.diag(stil)[:, :alpha])
         right = np.dot(np.diag(stil)[:alpha, :], right)
         return (left, right, bw)
@@ -180,7 +180,7 @@ def bond_weight(matrix, k=0, cut=None):
         left, s, right = np.linalg.svd(matrix, full_matrices=False)
         alpha = len(s[s > 1e-14])
         stil = np.sqrt(s**(1-k))
-        bw = np.diag(s**k)
+        bw = np.diag((s[:alpha])**k)
         left = np.dot(left, np.diag(stil)[:, :alpha])
         right = np.dot(np.diag(stil)[:alpha, :], right)
         return (left, right, bw)
@@ -1298,7 +1298,7 @@ class ThreeDimensionalTriadNetwork:
                                  self.A.transpose((2,1,0)), which='rb')
         center = W.conjugate().transpose().dot(U)
         u, vdag, bwlr = bond_weight(center, k=self.hyp_k, cut=self.dbond)
-        self.bond_weights[2] = bwlr
+        print("lr shape", bwlr.shape)
         left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
         # if alpha <= self.dbond:
         #     left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
@@ -1323,7 +1323,7 @@ class ThreeDimensionalTriadNetwork:
                                  self.D, which='lf')
         center = W.conjugate().transpose().dot(U)
         u, vdag, bwfb = bond_weight(center, k=self.hyp_k, cut=self.dbond)
-        self.bond_weights[1] = bwfb
+        print("fb size", bwfb.shape)
         back_isometry = Udag.dot(vdag.transpose())
         front_isometry = Wdag.dot(u)
         # center = W.conjugate().transpose().dot(U)
@@ -1347,6 +1347,11 @@ class ThreeDimensionalTriadNetwork:
         # self.make_new_triads(U, V)
         self.make_new_triads(left_isometry, right_isometry,
                              front_isometry, back_isometry)
+        self.bond_weights[2] = bwlr
+        self.bond_weights[1] = bwfb
+        self.bond_weights = [self.bond_weights[1], self.bond_weights[2],
+                             self.bond_weights[0]]
+
 
     def makeD(self, U, V):
         """
@@ -1363,9 +1368,15 @@ class ThreeDimensionalTriadNetwork:
         
         # one = np.einsum('iqj, kql', self.D, V.reshape(vs))
         # print(self.D.shape, vs)
-        one = np.tensordot(self.D, V.reshape(vs), axes=([1], [1]))
+        V = V.reshape(vs)
+        V = np.einsum('abk, ia, jb', V, np.sqrt(self.bond_weights[1]),
+                      np.sqrt(self.bond_weights[1]))  # these could come from Q?
+        one = np.tensordot(self.D, V, axes=([1], [1]))
+        U = U.reshape(us)
+        U = np.einsum('abk, ia, jb', U, np.sqrt(self.bond_weights[2]),
+                      np.sqrt(self.bond_weights[2]))
         # two = np.einsum('ijp, pkl', self.D, U.reshape(us))
-        two = np.tensordot(self.D, U.reshape(us), axes=([2], [0]))
+        two = np.tensordot(self.D, U, axes=([2], [0]))
         # self.D = np.einsum('iqpl, jpqk', two, one).reshape((ds[0]**2, vs[2]*us[2]))
         self.D = np.tensordot(two, one, axes=([1,2], [2,1]))
         # self.D = self.D.reshape((ds[0]**2, vs[2]*us[2]))
@@ -1464,22 +1475,26 @@ class ThreeDimensionalTriadNetwork:
         """
         us = U.shape
         us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
-        As = self.A.shape
+        # As = self.A.shape
         bs = self.B.shape
         gs = G.shape
         vs = V.shape
         vs = (int(np.rint(np.sqrt(vs[0]))), int(np.rint(np.sqrt(vs[0]))), vs[1])
         
-        
+        V = V.reshape(vs)
+        V = np.einsum('abk, ia, jb', V, np.sqrt(self.bond_weights[1]),
+                      np.sqrt(self.bond_weights[1]))  # these could come from Q?
         # one = np.einsum('iaj, kal', V.reshape(vs), self.A)
-        one = np.tensordot(V.reshape(vs).conjugate(), self.A, axes=([1], [1]))
+        one = np.tensordot(V.conjugate(), self.A, axes=([1], [1]))
+        U = U.reshape(us)
+        U = np.einsum('abk, ia, jb', U, np.sqrt(self.bond_weights[2]),
+                      np.sqrt(self.bond_weights[2]))
         # two = np.einsum('aij, akl', U.reshape(us), self.A)
-        two = np.tensordot(U.reshape(us).conjugate(), self.A, axes=([0], [0]))
+        two = np.tensordot(U.conjugate(), self.A, axes=([0], [0]))
         # self.A = np.einsum('piqk, qjpl', two, one).reshape((us[2]*vs[2], As[2]**2))
         self.A = np.tensordot(one, two, axes=([0,2], [2,0]))
         self.A = np.tensordot(self.B, self.A, axes=([0], [1])).transpose((0,3,4,2,1))
         # self.A = self.A.reshape((us[2]*vs[2], As[2]**2))
-
         
         one = np.tensordot(self.A, G, axes=([2,4], [0,1]))
         one = one.reshape((bs[1]*us[2], vs[2]*gs[2]*gs[3]))
