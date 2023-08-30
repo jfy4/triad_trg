@@ -794,6 +794,9 @@ class ThreeDimensionalTriadNetwork:
             self.B = triads[1]
             self.C = triads[2]
             self.D = triads[3]
+            # bond weight order is [z, y, x]
+            # it rolls to [y, x, z]
+            self.bond_weights = [np.eye(self.B.shape[1])]*3
         print("Bond dimension =", self.dbond)
 
     def coarse_grain(self, normalize=True, all_vols=False, hyp_k=0):
@@ -952,6 +955,8 @@ class ThreeDimensionalTriadNetwork:
             self.C = self.C.reshape((beta, ss[3], gamma))
             
             self.D = self.D.reshape((gamma, ss[4], ss[5]))
+            self.bond_weights = [np.eye(self.B.shape[1])]*3
+
 
     def load_nn_imp(self, triads1, triads2):
         """
@@ -1292,16 +1297,18 @@ class ThreeDimensionalTriadNetwork:
                                  self.B.transpose((2,1,0)),
                                  self.A.transpose((2,1,0)), which='rb')
         center = W.conjugate().transpose().dot(U)
-        u, vdag, alpha = split(center)
-        if alpha <= self.dbond:
-            left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
-        else:
-            left_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
-            # left_isometry = vdag[:self.dbond, :].dot(Udag)
-        if alpha <= self.dbond:
-            right_isometry = Wdag.dot(u)
-        else:
-            right_isometry = Wdag.dot(u[:, :self.dbond])
+        u, vdag, bwlr = bond_weight(center, k=self.hyp_k, cut=self.dbond)
+        self.bond_weights[2] = bwlr
+        left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
+        # if alpha <= self.dbond:
+        #     left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
+        # else:
+        #     left_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
+        right_isometry = Wdag.dot(u)
+        # if alpha <= self.dbond:
+        #     right_isometry = Wdag.dot(u)
+        # else:
+        #     right_isometry = Wdag.dot(u[:, :self.dbond])
         # done with left and right
         # starting front and back
         # make the back isometry
@@ -1315,15 +1322,20 @@ class ThreeDimensionalTriadNetwork:
                                  self.C,
                                  self.D, which='lf')
         center = W.conjugate().transpose().dot(U)
-        u, vdag, alpha = split(center)
-        if alpha <= self.dbond:
-            back_isometry = Udag.dot(vdag.transpose())
-        else:
-            back_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
-        if alpha <= self.dbond:
-            front_isometry = Wdag.dot(u)
-        else:
-            front_isometry = Wdag.dot(u[:, :self.dbond])
+        u, vdag, bwfb = bond_weight(center, k=self.hyp_k, cut=self.dbond)
+        self.bond_weights[1] = bwfb
+        back_isometry = Udag.dot(vdag.transpose())
+        front_isometry = Wdag.dot(u)
+        # center = W.conjugate().transpose().dot(U)
+        # u, vdag, alpha = split(center)
+        # if alpha <= self.dbond:
+        #     back_isometry = Udag.dot(vdag.transpose())
+        # else:
+        #     back_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
+        # if alpha <= self.dbond:
+        #     front_isometry = Wdag.dot(u)
+        # else:
+        #     front_isometry = Wdag.dot(u[:, :self.dbond])
         if self.imp:
             self.make_new_impure_triads(left_isometry, right_isometry,
                                         front_isometry, back_isometry)
@@ -1345,7 +1357,7 @@ class ThreeDimensionalTriadNetwork:
         us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
         bs = self.B.shape
         cs = self.C.shape
-        ds = self.D.shape
+        # ds = self.D.shape
         vs = V.shape
         vs = (int(np.rint(np.sqrt(vs[0]))), int(np.rint(np.sqrt(vs[0]))), vs[1])
         
@@ -1360,6 +1372,8 @@ class ThreeDimensionalTriadNetwork:
         one = np.tensordot(self.C, self.D, axes=([2], [0])).transpose((0,3,4,2,1))
         
         # M = np.einsum('iwk, jwl', self.B, self.C).reshape((bs[0]*cs[0], bs[2]*cs[2]))
+        self.B = np.tensordot(self.B, self.bond_weights[0],
+                              axes=([1], [0])).transpose((0,2,1))
         two = np.tensordot(self.B, self.C, axes=([1], [1])).transpose((0,2,1,3))
 
         one = np.tensordot(two, one, axes=([2,3], [0,1]))
