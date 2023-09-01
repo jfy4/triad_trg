@@ -1294,17 +1294,18 @@ class ThreeDimensionalTriadNetwork:
         updates each direction using them.
 
         """
+        A1 = np.einsum('ajk, ia', self.A, np.sqrt(self.bond_weights[2]))
+        A2 = np.einsum('iak, ja', self.A, np.sqrt(self.bond_weights[1]))
+                      
+        D1 = np.einsum('iak, ja', self.D, np.sqrt(self.bond_weights[1]))
+        D2 = np.einsum('ijb, kb', self.D, np.sqrt(self.bond_weights[2]))
         # make the left isometry
-        A = np.einsum('abk, ia, jb', self.A, np.sqrt(self.bond_weights[2]),
-                      np.sqrt(self.bond_weights[1]))
-        D = np.einsum('iab, ja, kb', self.D, np.sqrt(self.bond_weights[1]),
-                      np.sqrt(self.bond_weights[2]))
-        U, Udag = self.get_UUdag(A, self.B, self.C, D, which='lf')
+        U, Udag = self.get_UUdag(A1, self.B, self.C, self.D, which='lf')
         # make the right isometry
-        W, Wdag = self.get_UUdag(D.transpose((2,1,0)),
+        W, Wdag = self.get_UUdag(D2.transpose((2,1,0)),
                                  self.C.transpose((2,1,0)),
                                  self.B.transpose((2,1,0)),
-                                 A.transpose((2,1,0)), which='rb')
+                                 self.A.transpose((2,1,0)), which='rb')
         center = W.conjugate().transpose().dot(U)
         u, vdag, bwlr = bond_weight(center, k=self.hyp_k, cut=self.dbond)
         print("lr shape", bwlr.shape)
@@ -1322,15 +1323,15 @@ class ThreeDimensionalTriadNetwork:
         # done with left and right
         # starting front and back
         # make the back isometry
-        U, Udag = self.get_UUdag(D.transpose((1,2,0)),
+        U, Udag = self.get_UUdag(D1.transpose((1,2,0)),
                                  self.C.transpose((2,1,0)),
                                  self.B.transpose((2,1,0)),
-                                 A.transpose((2,1,0)), which='rb')        
+                                 self.A.transpose((2,1,0)), which='rb')        
         # make the front isometry
-        W, Wdag = self.get_UUdag(A.transpose((1,0,2)),
+        W, Wdag = self.get_UUdag(A2.transpose((1,0,2)),
                                  self.B,
                                  self.C,
-                                 D, which='lf')
+                                 self.D, which='lf')
         center = W.conjugate().transpose().dot(U)
         u, vdag, bwfb = bond_weight(center, k=self.hyp_k, cut=self.dbond)
         print("fb size", bwfb.shape)
