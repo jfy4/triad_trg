@@ -1254,17 +1254,19 @@ class ThreeDimensionalTriadNetwork:
                                  self.C.transpose((2,1,0)),
                                  self.B.transpose((2,1,0)),
                                  self.A.transpose((2,1,0)), which='rb')
-        center = W.conjugate().transpose().dot(U)
-        u, vdag, alpha = split(center)
-        if alpha <= self.dbond:
-            left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
-        else:
-            left_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
+        center = W.transpose().dot(U)
+        u, vdag, alpha = split(center, cut=self.dbond)
+        left_isometry = Udag.dot(vdag.transpose())
+        # if alpha <= self.dbond:
+        #     left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
+        # else:
+        #     left_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
             # left_isometry = vdag[:self.dbond, :].dot(Udag)
-        if alpha <= self.dbond:
-            right_isometry = Wdag.dot(u)
-        else:
-            right_isometry = Wdag.dot(u[:, :self.dbond])
+        right_isometry = Wdag.dot(u)
+        # if alpha <= self.dbond:
+        #     right_isometry = Wdag.dot(u)
+        # else:
+        #     right_isometry = Wdag.dot(u[:, :self.dbond])
         # done with left and right
         # starting front and back
         # make the back isometry
@@ -1277,16 +1279,18 @@ class ThreeDimensionalTriadNetwork:
                                  self.B,
                                  self.C,
                                  self.D, which='lf')
-        center = W.conjugate().transpose().dot(U)
-        u, vdag, alpha = split(center)
-        if alpha <= self.dbond:
-            back_isometry = Udag.dot(vdag.transpose())
-        else:
-            back_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
-        if alpha <= self.dbond:
-            front_isometry = Wdag.dot(u)
-        else:
-            front_isometry = Wdag.dot(u[:, :self.dbond])
+        center = W.transpose().dot(U)
+        u, vdag, alpha = split(center, cut=self.dbond)
+        back_isometry = Udag.dot(vdag.transpose())
+        front_isometry = Wdag.dot(u)
+        # if alpha <= self.dbond:
+        #     back_isometry = Udag.dot(vdag.transpose())
+        # else:
+        #     back_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
+        # if alpha <= self.dbond:
+        #     front_isometry = Wdag.dot(u)
+        # else:
+        #     front_isometry = Wdag.dot(u[:, :self.dbond])
         if self.imp:
             self.make_new_impure_triads(left_isometry, right_isometry,
                                         front_isometry, back_isometry)
@@ -1308,7 +1312,7 @@ class ThreeDimensionalTriadNetwork:
         us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
         bs = self.B.shape
         cs = self.C.shape
-        ds = self.D.shape
+        # ds = self.D.shape
         vs = V.shape
         vs = (int(np.rint(np.sqrt(vs[0]))), int(np.rint(np.sqrt(vs[0]))), vs[1])
         
