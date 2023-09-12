@@ -923,7 +923,15 @@ class ThreeDimensionalTriadNetwork:
         self.Aimp1, self.Bimp1, self.Cimp1, self.Dimp1 = triads1
         self.Aimp2, self.Bimp2, self.Cimp2, self.Dimp2 = triads2
         self.nnimp = True
-            
+        
+    def load_imp(self, triads):
+        """
+        Load in the two impure tensors for the nearest neighbor
+        interaction.
+
+        """
+        self.Aimp, self.Bimp, self.Cimp, self.Dimp = triads
+        self.imp = True
             
     def get_nn_imp_triads(self, tensor1, tensor2):
         """ 
