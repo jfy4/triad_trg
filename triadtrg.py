@@ -771,6 +771,7 @@ class ThreeDimensionalTriadNetwork:
             print("X1 = ", X)
             if last:
                 if d == 'z':
+                    print("exact step")
                     self.exact_last_step()
                 else:
                     self.update_triads()
