@@ -1228,8 +1228,10 @@ class ThreeDimensionalTriadNetwork:
                                           self.A.transpose((2,1,0)), which='rb')
         alpha = Uleft.shape[1]
         if alpha <= self.dbond:
-            left_isometry = Uleft
-            right_isometry = Uleft
+            # left_isometry = Uleft
+            # right_isometry = Uleft
+            left_isometry = np.eye(Uleft.shape[1])
+            right_isometry = np.eye(Uleft.shape[1])
         else:
             if resleft <= resright:
                 left_isometry = Uleft[:, :self.dbond]
@@ -1251,8 +1253,10 @@ class ThreeDimensionalTriadNetwork:
                                           self.D, which='lf')
         alpha = Uback.shape[1]
         if alpha <= self.dbond:
-            back_isometry = Uback
-            front_isometry = Uback
+            # back_isometry = Uback
+            # front_isometry = Uback
+            back_isometry = np.eye(Uback.shape[1])
+            front_isometry = np.eye(Uback.shape[1])
         else:
             if resback <= resfront:
                 back_isometry = Uback[:, :self.dbond]
