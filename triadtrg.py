@@ -760,7 +760,7 @@ class ThreeDimensionalTriadNetwork:
             self.D = triads[3]
         print("Bond dimension =", self.dbond)
 
-    def coarse_grain(self, normalize=True, all_vols=False):
+    def coarse_grain(self, normalize=True, all_vols=False, last=False):
         """The main coarse graining function."""
         # print("Coarsening third dimension...")
         dirs = ['x', 'y', 'z']
@@ -769,9 +769,17 @@ class ThreeDimensionalTriadNetwork:
             X = self.makeX1()
             self.Xlist.append(X)
             print("X1 = ", X)
-            self.update_triads()
-            if normalize:
-                self.normalize()
+            if last:
+                if d == 'z':
+                    self.exact_last_step()
+                else:
+                    self.update_triads()
+                    if normalize:
+                        self.normalize()
+            else:                
+                self.update_triads()
+                if normalize:
+                    self.normalize()
         if all_vols:
             if self.imp:
                 return (self.get_lognorms(), self.get_imp_ratio())
@@ -1566,6 +1574,21 @@ class ThreeDimensionalTriadNetwork:
         if trace < 0:
             print("negative trace!")
         self.lognorms.append(np.log(np.abs(trace)))
+
+    def exact_last_step(self,):
+        """
+        a final tensor contraction done exactly
+        """
+        left_and_right = np.tensordot(self.A, self.D,
+                                      axes=([0,1], [2,1]))
+        self.C = np.tensordot(self.C, left_and_right,
+                              axes=([2], [1]))
+        mid = np.tensordot(self.B, self.C,
+                           axes=([0,2],[2,0]))
+        want = np.trace(mid.dot(mid))
+        if want < 0:
+            print("negative trace!", want)
+        self.lognorms.append(np.log(np.abs(want)))
 
     # def imp_trace_ratio(self,):
     #     mid = np.tensordot(self.B, self.C, axes=([1,2], [1,0]))
