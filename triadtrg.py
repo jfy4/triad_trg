@@ -1404,11 +1404,12 @@ class ThreeDimensionalTriadNetwork:
         two = np.tensordot(U.reshape(us).conjugate(), self.A, axes=([0], [0]))
         # self.A = np.einsum('piqk, qjpl', two, one).reshape((us[2]*vs[2], As[2]**2))
         self.A = np.tensordot(one, two, axes=([0,2], [2,0]))
-        self.A = np.tensordot(self.B, self.A, axes=([0], [1])).transpose((0,3,4,2,1))
+        self.A = np.tensordot(self.A, self.B, axes=([1], [0])).transpose((3,1,0,2,4))
+        # self.A = np.tensordot(self.B, self.A, axes=([0], [1])).transpose((0,3,4,2,1))
         # self.A = self.A.reshape((us[2]*vs[2], As[2]**2))
 
-        
-        one = np.tensordot(self.A, G, axes=([2,4], [0,1]))
+        # one = np.tensordot(self.A, G, axes=([2,4], [0,1]))
+        one = np.tensordot(self.A, G, axes=([3,4], [0,1]))
         one = one.reshape((bs[1]*us[2], vs[2]*gs[2]*gs[3]))
 
         self.A, G, alpha = split(one, cut=self.dbond, split='right')
