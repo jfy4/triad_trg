@@ -104,8 +104,8 @@ def split(matrix, cut=None, split='both'):
     """
     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
     if (cut is not None):
-        # left, s, right = np.linalg.svd(matrix, full_matrices=False)
-        left, s, right = svd(matrix, full_matrices=False, lapack_driver='gesvd')
+        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        # left, s, right = svd(matrix, full_matrices=False, lapack_driver='gesvd')
         # left, s, right = randomized_svd(matrix, n_components=cut) 
         alpha = min([len(s[s > 1e-14]), cut])
         if split == 'both':
@@ -128,8 +128,8 @@ def split(matrix, cut=None, split='both'):
         else:
             raise ValueError("split must be a valid option.")
     else:
-        # left, s, right = np.linalg.svd(matrix, full_matrices=False)
-        left, s, right = svd(matrix, full_matrices=False, lapack_driver='gesvd')
+        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        # left, s, right = svd(matrix, full_matrices=False, lapack_driver='gesvd')
         if split == 'both':
             alpha = len(s[s > 1e-14])
             left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
@@ -1235,10 +1235,12 @@ class ThreeDimensionalTriadNetwork:
             left_isometry = np.eye(Uleft.shape[1])
             right_isometry = np.eye(Uleft.shape[1])
         else:
-            if resleft <= resright:
+            if resleft < resright:
+                print("U left")
                 left_isometry = Uleft[:, :self.dbond]
                 right_isometry = Uleft[:, :self.dbond]
             else:
+                print("U right")
                 left_isometry = Uright[:, :self.dbond]
                 right_isometry = Uright[:, :self.dbond]
         # done with left and right
@@ -1260,10 +1262,12 @@ class ThreeDimensionalTriadNetwork:
             back_isometry = np.eye(Uback.shape[1])
             front_isometry = np.eye(Uback.shape[1])
         else:
-            if resback <= resfront:
+            if resback < resfront:
+                print("V back")
                 back_isometry = Uback[:, :self.dbond]
                 front_isometry = Uback[:, :self.dbond]
             else:
+                print("V front")
                 back_isometry = Ufront[:, :self.dbond]
                 front_isometry = Ufront[:, :self.dbond]
                 
@@ -1494,7 +1498,6 @@ class ThreeDimensionalTriadNetwork:
 
         """
         gs = G.shape
-
         self.B, self.C, alpha = split(G.reshape((gs[0]*gs[1], gs[2]*gs[3])),
                                       cut=self.dbond)
         self.B = self.B.reshape((gs[0], gs[1], alpha)) # check ordering
