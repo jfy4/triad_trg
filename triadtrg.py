@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-from scipy.linalg import eigh
+from scipy.linalg import eigh, svd
 import warnings
 # from sklearn.utils.extmath import randomized_svd
 
@@ -104,7 +104,8 @@ def split(matrix, cut=None, split='both'):
     """
     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
     if (cut is not None):
-        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        # left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        left, s, right = svd(matrix, full_matrices=False)
         # left, s, right = randomized_svd(matrix, n_components=cut) 
         alpha = min([len(s[s > 1e-14]), cut])
         if split == 'both':
@@ -127,7 +128,8 @@ def split(matrix, cut=None, split='both'):
         else:
             raise ValueError("split must be a valid option.")
     else:
-        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        # left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        left, s, right = svd(matrix, full_matrices=False)
         if split == 'both':
             alpha = len(s[s > 1e-14])
             left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
@@ -1557,7 +1559,6 @@ class ThreeDimensionalTriadNetwork:
         other = np.tensordot(self.Aimp, self.Dimp, axes=([0,1], [2,1]))
         impure = np.trace(np.dot(other.transpose(), mid))
         return impure/pure
-
         
     def tensor_trace(self,):
         mid = np.tensordot(self.B, self.C, axes=([1,2], [1,0]))
