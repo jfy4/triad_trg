@@ -1257,16 +1257,7 @@ class ThreeDimensionalTriadNetwork:
         center = W.transpose().dot(U)
         u, vdag, alpha = split(center, cut=self.dbond)
         left_isometry = Udag.dot(vdag.transpose())
-        # if alpha <= self.dbond:
-        #     left_isometry = Udag.dot(vdag.transpose())  # possible conjugate?
-        # else:
-        #     left_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
-            # left_isometry = vdag[:self.dbond, :].dot(Udag)
         right_isometry = Wdag.dot(u)
-        # if alpha <= self.dbond:
-        #     right_isometry = Wdag.dot(u)
-        # else:
-        #     right_isometry = Wdag.dot(u[:, :self.dbond])
         # done with left and right
         # starting front and back
         # make the back isometry
@@ -1283,14 +1274,6 @@ class ThreeDimensionalTriadNetwork:
         u, vdag, alpha = split(center, cut=self.dbond)
         back_isometry = Udag.dot(vdag.transpose())
         front_isometry = Wdag.dot(u)
-        # if alpha <= self.dbond:
-        #     back_isometry = Udag.dot(vdag.transpose())
-        # else:
-        #     back_isometry = Udag.dot(vdag.transpose()[:, :self.dbond])
-        # if alpha <= self.dbond:
-        #     front_isometry = Wdag.dot(u)
-        # else:
-        #     front_isometry = Wdag.dot(u[:, :self.dbond])
         if self.imp:
             self.make_new_impure_triads(left_isometry, right_isometry,
                                         front_isometry, back_isometry)
@@ -1299,7 +1282,6 @@ class ThreeDimensionalTriadNetwork:
                                     front_isometry, back_isometry)
             self.nnimp = False
             self.imp = True
-        # self.make_new_triads(U, V)
         self.make_new_triads(left_isometry, right_isometry,
                              front_isometry, back_isometry)
 
@@ -1417,12 +1399,11 @@ class ThreeDimensionalTriadNetwork:
         """
         us = U.shape
         us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
-        As = self.A.shape
+        # As = self.A.shape
         bs = self.B.shape
         gs = G.shape
         vs = V.shape
         vs = (int(np.rint(np.sqrt(vs[0]))), int(np.rint(np.sqrt(vs[0]))), vs[1])
-        
         
         # one = np.einsum('iaj, kal', V.reshape(vs), self.A)
         one = np.tensordot(V.reshape(vs).conjugate(), self.A, axes=([1], [1]))
@@ -1432,7 +1413,6 @@ class ThreeDimensionalTriadNetwork:
         self.A = np.tensordot(one, two, axes=([0,2], [2,0]))
         self.A = np.tensordot(self.B, self.A, axes=([0], [1])).transpose((0,3,4,2,1))
         # self.A = self.A.reshape((us[2]*vs[2], As[2]**2))
-
         
         one = np.tensordot(self.A, G, axes=([2,4], [0,1]))
         one = one.reshape((bs[1]*us[2], vs[2]*gs[2]*gs[3]))
@@ -1455,7 +1435,6 @@ class ThreeDimensionalTriadNetwork:
         vs = V.shape
         vs = (int(np.rint(np.sqrt(vs[0]))), int(np.rint(np.sqrt(vs[0]))), vs[1])
         
-        
         # one = np.einsum('iaj, kal', V.reshape(vs), self.A)
         one = np.tensordot(V.reshape(vs).conjugate(), self.A, axes=([1], [1]))
         # two = np.einsum('aij, akl', U.reshape(us), self.A)
@@ -1465,7 +1444,6 @@ class ThreeDimensionalTriadNetwork:
         self.Aimp = np.tensordot(self.B, self.Aimp,
                                  axes=([0], [1])).transpose((0,3,4,2,1))
         # self.A = self.A.reshape((us[2]*vs[2], As[2]**2))
-
         
         one = np.tensordot(self.Aimp, G, axes=([2,4], [0,1]))
         one = one.reshape((bs[1]*us[2], vs[2]*gs[2]*gs[3]))
