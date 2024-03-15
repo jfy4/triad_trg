@@ -5,6 +5,19 @@ import warnings
 # from sklearn.utils.extmath import randomized_svd
 
 
+def rsvd(A, n_components):
+    m, n = A.shape
+    Omega = np.random.normal(size=(n, n_components))
+    Q, R = np.linalg.qr(A.dot(Omega))
+    B = Q.conjugate().transpose().dot(A)
+
+    util, sig, vdagtil = np.linalg.svd(B, full_matrices=False)
+
+    uprime = Q.dot(util)
+
+    return (uprime, sig, vdagtil)
+
+
 def getU(q, nums):
     # qs = q.shape
     # O = eigh(q, subset_by_index=[qs[0]-nums, qs[0]-1])
