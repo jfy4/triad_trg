@@ -1562,7 +1562,7 @@ class ThreeDimensionalTriadNetwork:
         other = np.tensordot(self.Aimp, self.Dimp, axes=([0,1], [2,1]))
         impure = np.trace(np.dot(other.transpose(), mid))
         return impure/pure
-        
+
     def tensor_trace(self,):
         mid = np.tensordot(self.B, self.C, axes=([1,2], [1,0]))
         other = np.tensordot(self.A, self.D, axes=([0,1], [2,1]))
@@ -1572,155 +1572,29 @@ class ThreeDimensionalTriadNetwork:
             print("negative trace!")
         self.lognorms.append(np.log(np.abs(trace)))
 
-    # def imp_trace_ratio(self,):
-    #     mid = np.tensordot(self.B, self.C, axes=([1,2], [1,0]))
-    #     other = np.tensordot(self.A, self.D, axes=([0,1], [2,1]))
-    #     pure = np.trace(np.dot(other.transpose(), mid))
+    def save(self, path):
+        np.save(path + "A.npy", self.A)
+        np.save(path + "B.npy", self.B)
+        np.save(path + "C.npy", self.C)
+        np.save(path + "D.npy", self.D)
+        np.save(path + "lognorms.npy", np.array(self.lognorms))
+        if self.imp:
+            np.save(path + "Aimp.npy", self.Aimp)
+            np.save(path + "Bimp.npy", self.Bimp)
+            np.save(path + "Cimp.npy", self.Cimp)
+            np.save(path + "Dimp.npy", self.Dimp)
 
-    #     mid = np.tensordot(self.Bimp, self.Cimp, axes=([1,2], [1,0]))
-    #     other = np.tensordot(self.Aimp, self.Dimp, axes=([0,1], [2,1]))
-    #     impure = np.trace(np.dot(other.transpose(), mid))
-    #     return impure/pure
-        
-        # """
-        # U is ordered (left-top left-bottom left)
-        # V is ordered (front-top front-bottom front)
-        # """
-        # us = U.shape
-        # us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
-        # As = self.A.shape
-        # bs = self.B.shape
-        # cs = self.C.shape
-        # ds = self.D.shape
-        # vs = V.shape
-        # vs = (int(np.rint(np.sqrt(vs[0]))), int(np.rint(np.sqrt(vs[0]))), vs[1])
-        
-        
-        # # one = np.einsum('iaj, kal', V.reshape(vs), self.A)
-        # one = np.tensordot(V.reshape(vs), self.A, axes=([1], [1]))
-        # # two = np.einsum('aij, akl', U.reshape(us), self.A)
-        # two = np.tensordot(U.reshape(us), self.A, axes=([0], [0]))
-        # # self.A = np.einsum('piqk, qjpl', two, one).reshape((us[2]*vs[2], As[2]**2))
-        # self.A = np.tensordot(two, one, axes=([0, 2], [2, 0])).transpose((0, 2, 1, 3))
-        # self.A = self.A.reshape((us[2]*vs[2], As[2]**2))
-        
-        # # one = np.einsum('iqj, kql', self.D, V.reshape(vs))
-        # one = np.tensordot(self.D, V.reshape(vs), axes=([1], [1]))
-        # # two = np.einsum('ijp, pkl', self.D, U.reshape(us))
-        # two = np.tensordot(self.D, U.reshape(us), axes=([2], [0]))
-        # # self.D = np.einsum('iqpl, jpqk', two, one).reshape((ds[0]**2, vs[2]*us[2]))
-        # self.D = np.tensordot(two, one, axes=([1,2], [2,1])).transpose((0,2,3,1))
-        # # self.D = self.D.reshape((ds[0]**2, vs[2]*us[2]))
-        # UU = np.tensordot(self.C, self.D, axes=([2], [0]))
-        
-        # # M = np.einsum('iwk, jwl', self.B, self.C).reshape((bs[0]*cs[0], bs[2]*cs[2]))
-        # M = np.tensordot(self.B, self.C, axes=([1], [1]))
-
-        # one = np.tensordot(M, UU, axes=([1,3], [0,2])).transpose((0,1,3,2,4))
-        # one = one.reshape((bs[0]*cs[0]*vs[2], cs[1]*us[2]))
-        # G, self.D, alpha = split(one, cut=self.dbond, split='left')
-        # self.D = self.D.reshape((alpha, cs[1], us[2])) # check ordering
-        # return G.reshape((bs[0], cs[0], vs[2], alpha))
-                
-        # # M = M.reshape((bs[0]*cs[0], bs[2]*cs[2]))
-        # # print(bs, cs)
-        # # print(M.shape)
-        # # left, right, dd = split(M, cut=self.dbond)
-        # # print("here")
-        
-        # # one = np.einsum('jka, ial', self.B,
-        # #                 left.reshape((bs[0], cs[0], dd))).reshape((bs[0]**2, bs[1], dd))
-        # one = np.tensordot(self.B, left.reshape((bs[0], cs[0], dd)), axes=([2], [1]))
-        # one = one.transpose((2,0,1,3)).reshape((bs[0]**2, bs[1], dd))
-        # self.A, Ar, dda = split(self.A, cut=self.dbond)
-        # self.A = self.A.reshape((us[2], vs[2], dda))
-        # # self.B = np.einsum('ia, ajk', Ar, one)
-        # self.B = np.tensordot(Ar, one, axes=([1], [0]))
-        
-        # # one = np.einsum('ial, ajk', right.reshape((dd, bs[2], cs[2])),
-        # #                 self.C).reshape((dd, cs[1], cs[2]**2))
-        # one = np.tensordot(right.reshape((dd, bs[2], cs[2])), self.C, axes=([1], [0]))
-        # one = one.transpose((0,2,3,1)).reshape((dd, cs[1], cs[2]**2))
-        # Dl, self.D, ddd = split(self.D, cut=self.dbond)
-        # self.D = self.D.reshape((ddd, vs[2], us[2])) 
-        # # self.C = np.einsum('ija, ak', one, Dl)
-        # self.C = np.tensordot(one, Dl, axes=([2], [0]))
-
-
-
-        
-
-# def getS(AorB):
-#     """ A or B is structured (left, front, alpha) """
-#     As = AorB.shape
-#     # one = AorB.transpose((1, 0, 2)).reshape((As[1], As[0]*As[2]))
-#     # want = np.dot(one.transpose(), one)
-#     # want = want.reshape((As[0], As[2], As[0], As[2]))
-#     # want = want.transpose((0, 2, 1, 3)).reshape((As[0]**2, As[2]**2))
-#     # want = np.einsum('iak, jal', AorB, AorB).reshape((As[0]**2, As[2]**2))
-#     want = np.tensordot(AorB, AorB, axes=([1], [1])).transpose((0,2,1,3))
-#     want = want.reshape((As[0]**2, As[2]**2))
-#     return want
-
-# def getR23(C, D, B):
-#     """
-#     C is structured (beta top gamma)
-#     D is structured (gamma away right)
-#     """
-#     cs = C.shape
-#     # ds = D.shape
-#     # one = np.einsum('iab, jab', D, D)
-#     one = np.tensordot(D, D, axes=([1,2], [1,2]))
-#     # two = np.einsum('ija, ak', C, one)
-#     two = np.tensordot(C, one, axes=([2], [0]))
-#     # two = np.einsum('ika, jla', two, C)
-#     two = np.tensordot(two, C, axes=([2], [2])).transpose((0,2,1,3))
-#     r2 = two.reshape((cs[0]**2, cs[1]**2))
-#     bs = B.shape
-#     # tws = two.shape
-#     one = np.einsum('ijaa', two)
-#     # two = np.einsum('ija, ak', B, one)
-#     two = np.tensordot(B, one, axes=([2], [0]))
-#     # two = np.einsum('ika, jla', two, B)
-#     two = np.tensordot(two, B, axes=([2], [2])).transpose((0,2,1,3))
-#     r3 = two.reshape((bs[0]**2, bs[1]**2))
-#     # print(cs, ds)
-#     # one = D.reshape((ds[0], ds[1]*ds[2]))
-#     # one = np.dot(one, one.transpose())
-#     # print(one.shape)
-#     # one = np.dot(C.reshape((cs[0]*cs[1], cs[2])), one)
-#     # one = np.dot(C.reshape((cs[0]*cs[1], cs[2])), one.transpose())
-#     # one =  one.reshape((cs[0], cs[1], cs[0], cs[1])).transpose((0, 2, 1, 3))
-#     return (r2, r3)
-
-
-# def getQ(s1, s2, r2, r3):
-#     ss = s1.shape
-#     x = int(np.rint(np.sqrt(ss[0])))
-#     temp = s1.dot(s2)
-#     temp = temp.dot(r2)
-#     temp = temp.dot(r3.transpose())
-#     temp = temp.dot(s1.transpose())
-#     temp = temp.reshape((x, x, x, x)).transpose((2, 0, 3, 1))
-#     return temp.reshape((x**2, x**2))
-
-# def getU(q, nums):
-#     qs = q.shape
-#     # O = eigh(q, subset_by_index=[qs[0]-nums, qs[0]-1])
-#     # O = eigh(q, eigvals=(qs[0]-nums, qs[0]-1))
-#     if not np.allclose(q, q.conjugate().transpose()):
-#         warnings.warn("q matrix is not Hermitian by allclose.")
-#     # O = eigh(q)
-#     O = np.linalg.eigh(q)
-#     U = O[1]
-#     e = O[0]
-#     idx = e.argsort()[::-1]
-#     # print("largest =", np.max(e))
-#     sys.stdout.flush()
-#     return (U[:,idx])[:,:nums]
-
-
-
+    def load(self, path):
+        self.A = np.load(path + "A.npy")
+        self.B = np.load(path + "B.npy")
+        self.C = np.load(path + "C.npy")
+        self.D = np.load(path + "D.npy")
+        self.lognorms = np.load(path + "lognorms.npy")
+        if self.imp:
+            self.Aimp = np.load(path + "Aimp.npy")
+            self.Bimp = np.load(path + "Bimp.npy")
+            self.Cimp = np.load(path + "Cimp.npy")
+            self.Dimp = np.load(path + "Dimp.npy")
 
 
 class TwoDimensionalTriadNetwork:
