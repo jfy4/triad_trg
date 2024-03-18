@@ -2,19 +2,29 @@ import numpy as np
 import sys
 from scipy.linalg import eigh, svd
 import warnings
-# from sklearn.utils.extmath import randomized_svd
 
 
 def rsvd(A, n_components):
+    """
+    Randomized SVD.
+
+    Parameters
+    ----------
+    A            : The matrix to compute the SVD of.
+    n_components : The number of random samples to use in computing
+                   the svd.
+
+    Returns
+    -------
+    (uprime, sig, vdagtil) : The three matrices in an SVD.
+
+    """
     m, n = A.shape
     Omega = np.random.normal(size=(n, n_components))
     Q, R = np.linalg.qr(A.dot(Omega))
     B = Q.conjugate().transpose().dot(A)
-
     util, sig, vdagtil = np.linalg.svd(B, full_matrices=False)
-
     uprime = Q.dot(util)
-
     return (uprime, sig, vdagtil)
 
 
@@ -34,70 +44,6 @@ def getU(q, nums):
     return (U[:,idx])[:,:nums]
 
 
-# def split(matrix, cut=None, split='both'):
-#     """
-#     Splits a matrix in half using the SVD.
-    
-#     Parameters
-#     ----------
-#     matrix : The matrix to be split.
-#     cut    : (optional, default None) The number of states to keep on the internal 
-#              index.
-
-#     Returns
-#     -------
-#     left  : The left side of the split matrix.
-#     right : The right side of the split matrix.
-#     alpha : The size of the internal index.
-
-#     """
-#     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
-#     if (cut is not None):
-#         left, s, right = randomized_svd(matrix, n_components=cut) 
-#         alpha = min([len(s[s > 1e-14]), cut])
-#         if split == 'both':
-#             left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
-#             right = np.dot(np.diag(np.sqrt(s))[:alpha, :], right)
-#             # assert np.allclose(left.dot(right), matrix)
-#             return (left, right, alpha)
-#         elif split == 'left':
-#             # alpha = min([len(s[s > 1e-14]), cut])
-#             left = np.dot(left, np.diag(s)[:, :alpha])
-#             right = right[:alpha, :]
-#             # assert np.allclose(left.dot(right), matrix)
-#             return (left, right, alpha)
-#         elif split == 'right':
-#             # alpha = min([len(s[s > 1e-14]), cut])
-#             left = left[:, :alpha]
-#             right = np.dot(np.diag(s)[:alpha, :], right)
-#             # assert np.allclose(left.dot(right), matrix)
-#             return (left, right, alpha)
-#         else:
-#             raise ValueError("split must be a valid option.")
-#     else:
-#         left, s, right = np.linalg.svd(matrix, full_matrices=False)
-#         if split == 'both':
-#             alpha = len(s[s > 1e-14])
-#             left = np.dot(left, np.diag(np.sqrt(s))[:, :alpha])
-#             right = np.dot(np.diag(np.sqrt(s))[:alpha, :], right)
-#             # assert np.allclose(left.dot(right), matrix)
-#             return (left, right, alpha)
-#         elif split == 'left':
-#             alpha = len(s[s > 1e-14])
-#             left = np.dot(left, np.diag(s)[:, :alpha])
-#             right = right[:alpha, :]
-#             # assert np.allclose(left.dot(right), matrix)
-#             return (left, right, alpha)
-#         elif split == 'right':
-#             alpha = len(s[s > 1e-14])
-#             left = left[:, :alpha]
-#             right = np.dot(np.diag(s)[:alpha, :], right)
-#             # assert np.allclose(left.dot(right), matrix)
-#             return (left, right, alpha)
-#         else:
-#             raise ValueError("split must be a valid option.")
-
-
 def split(matrix, cut=None, split='both'):
     """
     Splits a matrix in half using the SVD.
@@ -105,8 +51,10 @@ def split(matrix, cut=None, split='both'):
     Parameters
     ----------
     matrix : The matrix to be split.
-    cut    : (optional, default None) The number of states to keep on the internal 
-             index.
+    cut    : (optional, default None) The number of states to keep on the
+             internal index.
+    split  : How to split the signular values between the left and right
+             halves.
 
     Returns
     -------
@@ -1591,6 +1539,7 @@ class ThreeDimensionalTriadNetwork:
         np.save(path + "C.npy", self.C)
         np.save(path + "D.npy", self.D)
         np.save(path + "lognorms.npy", np.array(self.lognorms))
+        # np.save(path + "Xlist.npy", np.array(self.Xlist))
         if self.imp:
             np.save(path + "Aimp.npy", self.Aimp)
             np.save(path + "Bimp.npy", self.Bimp)
@@ -1603,6 +1552,7 @@ class ThreeDimensionalTriadNetwork:
         self.C = np.load(path + "C.npy")
         self.D = np.load(path + "D.npy")
         self.lognorms = np.load(path + "lognorms.npy")
+        # self.Xlist = np.load(path + "Xlist.npy")
         if self.imp:
             self.Aimp = np.load(path + "Aimp.npy")
             self.Bimp = np.load(path + "Bimp.npy")
