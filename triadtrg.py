@@ -65,8 +65,8 @@ def split(matrix, cut=None, split='both'):
     """
     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
     if (cut is not None):
-        # left, s, right = np.linalg.svd(matrix, full_matrices=False)
-        left, s, right = rsvd(matrix, cut)
+        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        # left, s, right = rsvd(matrix, cut)
         # left, s, right = svd(matrix, full_matrices=False, lapack_driver='gesvd')
         # left, s, right = randomized_svd(matrix, n_components=cut) 
         alpha = min([len(s[s > 1e-14]), cut])
@@ -1362,7 +1362,7 @@ class ThreeDimensionalTriadNetwork:
         self.B = np.load(path + "B.npy")
         self.C = np.load(path + "C.npy")
         self.D = np.load(path + "D.npy")
-        self.lognorms = np.load(path + "lognorms.npy")
+        self.lognorms = list(np.load(path + "lognorms.npy"))
         # self.Xlist = np.load(path + "Xlist.npy")
         if self.imp:
             self.Aimp = np.load(path + "Aimp.npy")
