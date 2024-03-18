@@ -65,7 +65,8 @@ def split(matrix, cut=None, split='both'):
     """
     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
     if (cut is not None):
-        left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        # left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        left, s, right = rsvd(matrix, cut)
         # left, s, right = svd(matrix, full_matrices=False, lapack_driver='gesvd')
         # left, s, right = randomized_svd(matrix, n_components=cut) 
         alpha = min([len(s[s > 1e-14]), cut])
@@ -90,6 +91,7 @@ def split(matrix, cut=None, split='both'):
             raise ValueError("split must be a valid option.")
     else:
         left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        # left, s, right = rsvd(matrix, matrix.shape[1])
         # left, s, right = svd(matrix, full_matrices=False, lapack_driver='gesvd')
         if split == 'both':
             alpha = len(s[s > 1e-14])
@@ -315,56 +317,6 @@ class Four_Dimensional_Triad_Network:
         assert np.allclose(Q, Q.conjugate().transpose())
         return Q
 
-        
-        # return S1
-
-    # def gets2(self, D):
-    #     ds = D.shape
-    #     # DD = np.einsum('iak, jal', D, D.conjugate()).reshape((ds[0]**2, ds[2]**2))
-    #     DD = np.tensordot(D, D.conjugate(), axes=([1], [1])).transpose((0,2,1,3))
-    #     DD = DD.reshape((ds[0]**2, ds[2]**2))
-    #     return DD
-
-    # def getr23(self, D, E, F):
-    #     ds = D.shape
-    #     es = E.shape
-    #     fs = F.shape
-
-    #     # r1 = np.einsum('iab, jab', F, F.conjugate())
-    #     r1 = np.tensordot(F, F.conjugate(), axes=([1,2], [1,2]))
-    #     # r2 = np.einsum('ija, ak', E, r1)
-    #     r2 = np.tensordot(E, r1, axes=([2], [0]))
-    #     # r2 = np.einsum('ika, jla', r2, E.conjugate())
-    #     r2 = np.tensordot(r2, E.conjugate(), axes=([2], [2])).transpose((0,2,1,3))
-
-    #     mid = np.einsum('ijaa', r2)
-    #     # left = np.einsum('ija, ak', D, mid)
-    #     left = np.tensordot(D, mid, axes=([2], [0]))
-    #     # r3 = np.einsum('ika, jla', left, D.conjugate()).reshape((ds[0]**2, ds[1]**2))
-    #     r3 = np.tensordot(left, D.conjugate(), axes=([2], [2])).transpose((0,2,1,3))
-    #     r3 = r3.reshape((ds[0]**2, ds[1]**2))
-    #     r2 = r2.reshape((es[0]**2, es[1]**2))
-    #     return (r2, r3)
-
-            
-    # def getq(self, A, B, C, D, E, F):
-    #     """make the q matrix."""
-    #     S1 = self.gets1(A, B, C)
-    #     ss = S1.shape
-    #     xx = int(np.rint(np.sqrt(ss[0])))
-    #     S2 = self.gets2(D)
-    #     R2, R3 = self.getr23(D, E, F)
-
-    #     Q = np.dot(S1, S2)
-    #     Q = np.dot(Q, R2)
-    #     Q = np.dot(Q, R3.transpose())
-    #     Q = np.dot(Q, S1.transpose())
-    #     Q = Q.reshape((xx,xx,xx,xx)).transpose((0,2,1,3))
-    #     Q = Q.reshape((xx**2, xx**2))
-    #     # assert np.allclose(Q, Q.conjugate().transpose())
-
-    #     return Q
-
     def getwq(self, A, B, C,D,E,F):
         As = A.shape       # get everyone's shapes
         bs = B.shape
@@ -404,123 +356,6 @@ class Four_Dimensional_Triad_Network:
         return Q
 
 
-        # S1 = np.dot(s2, s1)     # A B C
-        # return S1
-
-    # def getws2(self, D):
-    #     ds = D.shape
-    #     DD = np.einsum('iak, jal', D, D.conjugate()).reshape((ds[0]**2, ds[2]**2))
-    #     return DD
-
-    # def getwr23(self, D, E, F):
-    #     ds = D.shape
-    #     es = E.shape
-    #     fs = F.shape
-
-    #     r1 = np.einsum('iab, jab', F, F.conjugate())
-    #     r2 = np.einsum('ija, ak', E, r1)
-    #     r2 = np.einsum('ika, jla', r2, E.conjugate())
-
-    #     mid = np.einsum('ijaa', r2)
-    #     left = np.einsum('ija, ak', D, mid)
-    #     r3 = np.einsum('ika, jla', left, D.conjugate()).reshape((ds[0]**2, ds[1]**2))
-    #     r2 = ee.reshape((es[0]**2, es[1]**2))
-    #     return (r2, r3)
-
-
-    # def getwq(self, A, B, C, D, E, F):
-    #     """make the special q for w update."""
-    #     S1 = self.getws1(A, B, C)
-    #     ss = S1.shape
-    #     xx = int(np.rint(np.sqrt(ss[0])))
-    #     S2 = self.gets2(D)
-    #     R2, R3 = self.getr23(D, E, F)
-
-    #     Q = np.dot(S1, S2)
-    #     Q = np.dot(Q, R2)
-    #     Q = np.dot(Q, R3.transpose())
-    #     Q = np.dot(Q, S1.transpose())
-    #     Q = Q.reshape((xx,xx,xx,xx)).transpose((0,2,1,3))
-    #     Q = Q.reshape((xx**2, xx**2))
-    #     # assert np.allclose(Q, Q.conjugate().transpose())
-    #     return Q
-
-
-    # def updateBC(self, w, left):
-    #     """
-    #     Here B and C are (left, middle, right)
-    #     W is (top, bot, free)
-    #     left is (free, top, bot)
-    #     right is (free, top, bot)
-    #     """
-    #     bs = self.B.shape
-    #     cs = self.C.shape
-    #     ws = w.shape
-    #     ws = (int(np.rint(np.sqrt(ws[0]))), int(np.rint(np.sqrt(ws[0]))), ws[1])
-
-    #     ls = left.shape
-    #     ls = (ls[0], int(np.rint(np.sqrt(ls[1]))), int(np.rint(np.sqrt(ls[1]))))
-    #     # print(ls)
-    #     # rs = right.shape
-
-    #     # top = np.einsum('iaj, akl', self.B, w.reshape(ws))
-    #     top = np.tensordot(self.B, w.reshape(ws), axes=([1], [0]))
-    #     # Big = np.einsum('ijak, lam', top, self.B)
-    #     Big = np.tensordot(top, self.B, axes=([2], [1]))
-    #     Big = Big.transpose((0,3,2,1,4))
-    #     # Big = np.einsum('iab, abjkl', left.reshape(ls), Big).reshape((ls[0]*ws[2], bs[2]**2))
-    #     Big = np.tensordot(left.reshape(ls), Big, axes=([1,2], [0,1]))
-    #     Big = Big.reshape((ls[0]*ws[2], bs[2]**2))
-    #     self.B, mid, alpha = split(Big, cut=self.dbond)
-    #     self.B = self.B.reshape((ls[0], ws[2], alpha))
-    #     mid = mid.reshape((alpha, bs[2], bs[2]))
-
-    #     # top = np.einsum('iaj, akl', self.C, w.reshape(ws))
-    #     top = np.tensordot(self.C, w.reshape(ws), axes=([1], [0]))
-    #     # Big = np.einsum('ijak, lam', top, self.C)
-    #     Big = np.tensordot(top, self.C, axes=([2], [1]))
-    #     Big = Big.transpose((0,3,2,1,4))
-    #     # Big = np.einsum('iab, abjkl', mid, Big).reshape((alpha*ws[2], cs[2]**2))
-    #     Big = np.tensordot(mid, Big, axes=([1,2], [0,1]))
-    #     Big = Big.reshape((alpha*ws[2], cs[2]**2))
-    #     self.C, mid, beta = split(Big, cut=self.dbond)
-    #     self.C = self.C.reshape((alpha, ws[2], beta))
-
-    #     return mid
-
-
-    # def updateDE(self, left):
-    #     """
-    #     Here B and C are (left, middle, right)
-    #     W is (top, bot, free)
-    #     left is (free, top, bot)
-    #     """
-
-    #     ls = left.shape
-    #     ds = self.D.shape
-    #     es = self.E.shape
-
-    #     # ED = np.einsum('iaj, kal', self.E, self.D).transpose((0,2,1,3))
-    #     ED = np.tensordot(self.E, self.D, axes=([1], [1])).transpose((0,2,1,3))
-    #     ED = ED.reshape((es[0]*ds[0], es[2]*ds[2]))
-    #     ED_left, ED_right, gamma = split(ED, cut=self.dbond)
-    #     # Big = np.einsum('ija, akl', self.D, ED_left.reshape((es[0], ds[0], gamma)))
-    #     Big = np.tensordot(self.D, ED_left.reshape((es[0], ds[0], gamma)),
-    #                        axes=([2], [0]))
-    #     Big = Big.transpose((0,2,1,3)).reshape((ds[0]*ds[0], ds[1], gamma))
-    #     # self.D = np.einsum('ia, ajk', left, Big).reshape((ls[0], ds[1], gamma))
-    #     self.D = np.tensordot(left, Big, axes=([1], [0])).reshape((ls[0], ds[1], gamma))
-
-    #     # Big = np.einsum('ija, akl', ED_right.reshape((gamma, es[2], ds[2])), self.E)
-    #     Big = np.tensordot(ED_right.reshape((gamma, es[2], ds[2])), self.E,
-    #                        axes=([2], [0]))
-    #     Big = Big.transpose((0,2,1,3)).reshape((gamma*es[1], es[2]**2))
-    #     self.E, mid, delta = split(Big, cut=self.dbond)
-    #     self.E = self.E.reshape((gamma, es[1], delta))
-
-    #     return mid
-
-
     def updateE(self, W):
         es = self.E.shape
         ws = W.shape
@@ -538,27 +373,6 @@ class Four_Dimensional_Triad_Network:
         bigB = np.tensordot(top, self.B, axes=([2],[1])).transpose((0,3,2,1,4))
         return bigB
         
-    
-    # def updateA(self, U, V):
-    #     As = self.A.shape
-    #     us = U.shape
-    #     us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
-    #     vs = V.shape
-    #     vs = (int(np.rint(np.sqrt(vs[0]))), int(np.rint(np.sqrt(vs[0]))), vs[1])
-    #     # cs = cap.shape
-        
-    #     # one = np.einsum('iaj, kal', V.reshape(vs), self.A)
-    #     one = np.tensordot(V.reshape(vs), self.A, axes=([1], [1]))
-    #     # two = np.einsum('aij, akl', U.reshape(us), self.A)
-    #     two = np.tensordot(U.reshape(us), self.A, axes=([0], [0]))
-    #     # self.A = np.einsum('piqk, qjpl', two, one).reshape((us[2]*vs[2], As[2]**2))
-    #     Big = np.tensordot(two, one, axes=([0, 2], [2, 0])).transpose((0, 2, 1, 3))
-    #     Big = Big.reshape((us[2]*vs[2], As[2]**2))
-    #     self.A, mid, alpha = split(Big, cut=self.dbond)
-    #     self.A = self.A.reshape((us[2], vs[2], alpha))
-
-    #     return mid
-
 
     def make_mid(self,):
         mid = np.tensordot(self.C, self.D, axes=([1],[1])).transpose((0,2,1,3))
@@ -695,9 +509,6 @@ class Four_Dimensional_Triad_Network:
         lognorms.append(np.log(self.tensor_trace()))
         return lognorms
 
-        
-    
-    
 
 class ThreeDimensionalTriadNetwork:
     """
