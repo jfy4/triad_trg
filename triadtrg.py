@@ -65,8 +65,8 @@ def split(matrix, cut=None, split='both'):
     """
     # assert np.allclose(np.dot(left, np.dot(np.diag(s), right)), matrix)
     if (cut is not None):
-        left, s, right = np.linalg.svd(matrix, full_matrices=False)
-        # left, s, right = rsvd(matrix, cut)
+        # left, s, right = np.linalg.svd(matrix, full_matrices=False)
+        left, s, right = rsvd(matrix, cut)
         # left, s, right = svd(matrix, full_matrices=False, lapack_driver='gesvd')
         # left, s, right = randomized_svd(matrix, n_components=cut) 
         alpha = min([len(s[s > 1e-14]), cut])
