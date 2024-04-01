@@ -114,38 +114,6 @@ def split(matrix, cut=None, split='both'):
         else:
             raise ValueError("split must be a valid option.")
 
-
-# def coarse_grain(tensor, nx, ny, nz, nt, dbond, triads=None):
-#     """The main coarse graining function."""
-#     if triads is not None:
-#         assert tensor is None
-#         fourD_net = Four_Dimensional_Triad_Network(dbond, triads=triads)
-#     else:
-#         fourD_net = Four_Dimensional_Triad_Network(dbond)
-#         fourD_net.get_triads(tensor)
-        
-#     for x in range(nx):
-#         fourD_net.update_triads()
-#         fourD_net.normalize()
-
-#     threeD_net = Three_Dimensional_Triad_Network(dbond, triads=fourD_net.make_3d_triads())
-#     del(fourD_net)
-#     for y in range(ny):
-#         threeD_net.update_triads()
-#         threeD_net.normalize()
-
-#     twoD_net = Two_Dimensional_Triad_Network(dbond, triads=make_2d_triads())
-#     del(threeD_net)
-#     for z in range(nz-1):
-#         twoD_net.update_triads()
-#         twoD_net.normalize()
-
-#     TM = twoD_net.trace_update()
-#     del(twoD_net)
-#     for t in range(nt):
-#         TM = TM.dot(TM)
-#         norm = np.linalg.norm(TM)
-#         TM /= norm
         
 class Four_Dimensional_Triad_Network:
     """
@@ -941,22 +909,6 @@ class ThreeDimensionalTriadNetwork:
         temp = temp.reshape((x, x, x, x)).transpose((0, 2, 1, 3))
         return temp.reshape((x**2, x**2))
 
-    # def make_q_from_triads(self, A, B, C, D, which):
-    #     """
-    #     A generic make Q method for any four triads.
-
-    #     """
-    #     s1 = self.getS(A)
-    #     s2 = self.getS(B)
-    #     r2, r3 = self.getR23(C, D, B)
-    #     if which == 'lf':
-    #         q = self.getQ_left_front(s1, s2, r2, r3)
-    #     elif which == 'rb':
-    #         q = self.getQ_right_back(s1, s2, r2, r3)
-    #     else:
-    #         raise ValueError("must be 'lf' or 'rb'")
-    #     return q
-
 
     def get_UUdag(self, A, B, C, D, which):
         """
@@ -1585,51 +1537,6 @@ class TwoDimensionalTriadNetwork:
         self.A = self.A.reshape((alpha, bs[1], us[2])).transpose((1,2,0))
         # self.A = np.dot(top, left).reshape((us[2], As[1], alpha))
         # self.B = np.dot(right, bot).reshape((alpha, bs[1], us[2]))
-
-    # def make_new_impure_triads(self, U):
-    #     # U and V are (top, bot, prime)
-    #     us = U.shape
-    #     us = (int(np.rint(np.sqrt(us[0]))), int(np.rint(np.sqrt(us[0]))), us[1])
-    #     As = self.A.shape
-    #     bs = self.B.shape
-    #     ibs = self.Bimp.shape
-    #     ias = self.Aimp.shape
-        
-    #     # top = np.einsum('ajk, ali', self.A, U.reshape(us)).reshape((us[2]*As[1], As[2]*us[1]))
-    #     top = np.tensordot(self.Aimp, U.reshape(us).conjugate(), axes=([0], [0])).transpose((3,0,1,2))
-    #     top = top.reshape((us[2]*ias[1], ias[2]*us[1]))
-        
-    #     # mid = np.einsum('iak, jal', self.B, self.A).reshape((bs[0]*As[0], bs[2]*As[2]))
-    #     mid = np.tensordot(self.Bimp, self.A, axes=([1], [1])).transpose((0,2,1,3))
-    #     mid = mid.reshape((ibs[0]*As[0], ibs[2]*As[2]))
-    #     # left, right, alpha = split(mid, cut = self.dbond)
-    #     top = np.dot(top, mid)
-    #     # bot = np.einsum('ial, jka', U.reshape(us), self.B).reshape((us[0]*bs[0], bs[1]*us[2]))
-    #     bot = np.tensordot(U.reshape(us), self.B, axes=([1], [2])).transpose((0,2,3,1))
-    #     bot = bot.reshape((us[0]*bs[0], bs[1]*us[2]))
-        
-    #     top1 = np.dot(top, bot)
-    #     # Bimp1, Aimp1, alpha = split(top, cut=self.dbond)
-    #     # Bimp1 = Bimp1.reshape((us[2], ias[1], alpha)).transpose((2,0,1))
-    #     # Aimp1 = Aimp1.reshape((alpha, bs[1], us[2])).transpose((1,2,0))
-
-    #     top = np.tensordot(self.A, U.reshape(us).conjugate(), axes=([0], [0])).transpose((3,0,1,2))
-    #     top = top.reshape((us[2]*As[1], As[2]*us[1]))
-        
-    #     # mid = np.einsum('iak, jal', self.B, self.A).reshape((bs[0]*As[0], bs[2]*As[2]))
-    #     mid = np.tensordot(self.B, self.Aimp, axes=([1], [1])).transpose((0,2,1,3))
-    #     mid = mid.reshape((bs[0]*ias[0], bs[2]*ias[2]))
-    #     # left, right, alpha = split(mid, cut = self.dbond)
-    #     top = np.dot(top, mid)
-    #     # bot = np.einsum('ial, jka', U.reshape(us), self.B).reshape((us[0]*bs[0], bs[1]*us[2]))
-    #     bot = np.tensordot(U.reshape(us), self.Bimp, axes=([1], [2])).transpose((0,2,3,1))
-    #     bot = bot.reshape((us[0]*ibs[0], ibs[1]*us[2]))
-        
-    #     top2 = np.dot(top, bot)
-    #     top = 0.5*(top1 + top2)
-    #     self.Bimp, self.Aimp, alpha = split(top, cut=self.dbond)
-    #     self.Bimp = self.Bimp.reshape((us[2], ias[1], alpha)).transpose((2,0,1))
-    #     self.Aimp = self.Aimp.reshape((alpha, ibs[1], us[2])).transpose((1,2,0))
 
 
     def make_new_impure_triads(self, U):
